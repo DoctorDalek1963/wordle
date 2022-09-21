@@ -1,0 +1,21 @@
+[package]
+name = "wordle"
+version = "0.1.0"
+edition = "2021"
+readme = "README.md"
+repository = "https://github.com/DoctorDalek1963/wordle"
+license = "MIT"
+
+[lib]
+name = "wordle"
+path = "src/wordle.rs"
+
+[[bin]]
+name = "wordle-cli"
+path = "src/bin/cli.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rand = "0.8.5"
+thiserror = "1.0.35"
