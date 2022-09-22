@@ -1,3 +1,8 @@
+pub const ALPHABET: [char; 26] = [
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
+    'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+];
+
 /// These are all the valid words according to the original Wordle source code.
 ///
 /// I have also included "DYSON" as a valid word, as a sort of Easter egg.

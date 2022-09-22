@@ -1,7 +1,7 @@
 pub mod letters;
 pub mod valid_words;
 
-use std::cmp::Ordering;
+use std::{cmp::Ordering, collections::HashMap};
 
 use letters::{Letter, Position};
 
@@ -83,29 +83,43 @@ impl Game {
             ),
         ];
 
+        // This maps each letter to its number of occurences in the target word
+        let mut instances_in_word_map: HashMap<char, usize> = HashMap::new();
+        for c in valid_words::ALPHABET {
+            instances_in_word_map.insert(c, self.word.chars().filter(|cc| *cc == c).count());
+        }
+
+        // Shadow to make it immutable
+        let instances_in_word_map = instances_in_word_map;
+
+        // This maps each character in the alphabet to a tuple. The first element is the number of
+        // correctly places letters in the guess, and the second number is how many times that
+        // letter still needs to be placed in the guess
+        let mut correct_letters_map: HashMap<char, (usize, usize)> = HashMap::new();
+        for c in valid_words::ALPHABET {
+            let correct_letters = optional_letters
+                .iter()
+                .filter(|l| {
+                    l.1.is_some()
+                        && l.1.as_ref().unwrap().letter() == c
+                        && l.1.as_ref().unwrap().position() == Position::Correct
+                })
+                .count();
+            correct_letters_map.insert(c, (correct_letters, instances_in_word_map.get(&c).expect("`instances_in_word_map` should contain all letters in the Latin alphabet ({c:?})") - correct_letters));
+        }
+
         let letters: [Letter; 5] = optional_letters.map(|(orig_char, opt_letter)| {
             if opt_letter.is_some() {
                 opt_letter.unwrap()
             } else {
                 // If we get here, then the letter is either in the wrong position, or all
                 // occurences of this letter have been placed correctly already
-                let instances_in_word: usize = self
-                    .word
-                    .chars()
-                    .filter(|c| *c == orig_char)
-                    .collect::<Vec<char>>()
-                    .len();
+                let instances_in_word = instances_in_word_map.get(&orig_char).expect("`instances_in_word_map` should contain all letters in the Latin alphabet ({orig_char:?})");
 
-                let instances_in_correct_positions_in_guess: usize = optional_letters
-                    .iter()
-                    .filter(|l| {
-                        l.1.is_some()
-                            && l.1.as_ref().unwrap().letter() == orig_char
-                            && l.1.as_ref().unwrap().position() == Position::Correct
-                    })
-                    .map(|l| l.1.as_ref().unwrap().letter())
-                    .collect::<Vec<char>>()
-                    .len();
+                let (instances_in_correct_positions_in_guess, remaining_places) =
+                    correct_letters_map.get(&orig_char).expect(
+                        "`correct_letters_map` should contain all letters in the Latin alphabet ({orig_char:?})",
+                    );
 
                 // We know how many times this letter appears in the word and in correct positions
                 // in the current guess
@@ -113,8 +127,18 @@ impl Game {
 
                 match instances_in_word.cmp(&instances_in_correct_positions_in_guess) {
                     Ordering::Greater => {
-                        // The letter needs to stay in the guess, but in a different position
-                        Letter::new(orig_char, Position::WrongPosition)
+                        if *remaining_places > 0 {
+                            // The letter needs to stay in the guess, but in a different position
+                            // We also want to decrement the remaining uses of this letter
+                            correct_letters_map
+                                .get_mut(&orig_char)
+                                .expect("`correct_letters_map` should contain all letters in the Latin alphabet ({orig_char:?})")
+                                .1 -= 1;
+                            Letter::new(orig_char, Position::WrongPosition)
+                        } else {
+                            // We've used up all the remaining places for this character
+                            Letter::new(orig_char, Position::NotInWord)
+                        }
                     }
                     Ordering::Equal => {
                         // We already have enough instances of this letter
@@ -134,8 +158,6 @@ impl Game {
 
 #[cfg(test)]
 mod tests {
-    use letters::Position;
-
     use super::*;
 
     #[test]
@@ -237,5 +259,38 @@ mod tests {
                 Letter::new('y', Position::WrongPosition),
             ]
         );
+
+        let game = Game {
+            word: "BLEEP".to_string(),
+        };
+
+        assert_eq!(
+            game.make_guess("eerie")
+                .expect("input `eerie` should be a valid guess"),
+            [
+                // Only the first 2 'E's should be WrongPosition, because there's only 2 unplaced 'E's in the word
+                Letter::new('e', Position::WrongPosition),
+                Letter::new('e', Position::WrongPosition),
+                Letter::new('r', Position::NotInWord),
+                Letter::new('i', Position::NotInWord),
+                Letter::new('e', Position::NotInWord),
+            ]
+        );
+
+        let game = Game {
+            word: "EERIE".to_string(),
+        };
+
+        assert_eq!(
+            game.make_guess("bleep")
+                .expect("input `bleep` should be a valid guess"),
+            [
+                Letter::new('b', Position::NotInWord),
+                Letter::new('l', Position::NotInWord),
+                Letter::new('e', Position::WrongPosition),
+                Letter::new('e', Position::WrongPosition),
+                Letter::new('p', Position::NotInWord),
+            ]
+        )
     }
 }
