@@ -14,7 +14,7 @@ use wordle::{
 /// terminal colours at the end of the letter. Each colour overrides the last, and the colours
 /// only need to be reset at the end of the word.
 fn pretty_print_letter(letter: Letter) -> String {
-    let mut string: String = match letter.position() {
+    let mut string: String = match letter.position {
         Position::NotInWord => {
             format!("{}", color::Fg(color::Black))
         }
@@ -26,7 +26,7 @@ fn pretty_print_letter(letter: Letter) -> String {
         }
     };
 
-    string.push(letter.letter());
+    string.push(letter.letter);
     string
 }
 
@@ -68,7 +68,7 @@ fn main() {
 
                 if letters
                     .iter()
-                    .filter(|l| l.position() == Position::Correct)
+                    .filter(|l| l.position == Position::Correct)
                     .count()
                     == 5
                 {

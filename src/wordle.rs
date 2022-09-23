@@ -1,11 +1,9 @@
 pub mod letters;
 pub mod valid_words;
 
-use std::{cmp::Ordering, collections::HashMap};
-
 use letters::{Letter, Position};
-
 use rand::seq::SliceRandom;
+use std::{cmp::Ordering, collections::HashMap};
 use thiserror::Error;
 
 #[derive(Debug, Error, PartialEq)]
@@ -116,8 +114,8 @@ impl Game {
                 .iter()
                 .filter(|l| {
                     l.1.is_some()
-                        && l.1.as_ref().unwrap().letter() == c
-                        && l.1.as_ref().unwrap().position() == Position::Correct
+                        && l.1.as_ref().unwrap().letter == c
+                        && l.1.as_ref().unwrap().position == Position::Correct
                 })
                 .count();
             correct_letters_map.insert(c, (correct_letters, instances_in_word_map.get(&c).expect("`instances_in_word_map` should contain all letters in the Latin alphabet ({c:?})") - correct_letters));

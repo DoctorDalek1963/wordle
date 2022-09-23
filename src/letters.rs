@@ -3,8 +3,8 @@ use super::Game;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Letter {
-    letter: char,
-    position: Position,
+    pub letter: char,
+    pub position: Position,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -23,14 +23,6 @@ impl Letter {
             letter: letter.to_ascii_uppercase(),
             position,
         }
-    }
-
-    pub fn letter(&self) -> char {
-        self.letter
-    }
-
-    pub fn position(&self) -> Position {
-        self.position
     }
 
     /// Check the pair of letters against the expected word.
