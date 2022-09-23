@@ -10,18 +10,18 @@ use thiserror::Error;
 
 #[derive(Debug, Error, PartialEq)]
 pub enum WordleError {
-    #[error("word must be exactly 5 letters")]
+    #[error("Guess must be exactly 5 letters")]
     WrongWordLength,
 
-    #[error("word must be exclusively ascii characters")]
+    #[error("Guess must be exclusively ASCII characters")]
     IncludesNonAscii,
 
-    #[error("word must be a valid word")]
+    #[error("Guess must be a valid word")]
     InvalidWord,
 }
 
 pub struct Game {
-    word: String,
+    pub word: String,
 }
 
 impl Game {
@@ -30,10 +30,31 @@ impl Game {
         let word = *valid_words::GOOD_WORDS
             .choose(&mut rand::thread_rng())
             .expect("valid_words::GOOD_WORDS should never be empty");
-        println!("{word}");
         Self {
             word: word.to_string().to_ascii_uppercase(),
         }
+    }
+
+    /// Check if the guess is valid.
+    ///
+    /// A guess is only valid if it is a five letter word in [VALID_WORDS](valid_words::VALID_WORDS).
+    /// That means it must be exclusively ASCII, have a length of 5 characters, and be in the list.
+    ///
+    /// A guess does not have to be uppercase to be valid. It is made uppercase automatically.
+    ///
+    /// If a guess is invalid, we return the appropriate [WordleError] variant.
+    pub fn is_valid_guess(guess: &str) -> Result<(), WordleError> {
+        let guess = guess.to_ascii_uppercase();
+
+        if !guess.is_ascii() {
+            return Err(WordleError::IncludesNonAscii);
+        } else if guess.len() != 5 {
+            return Err(WordleError::WrongWordLength);
+        } else if !valid_words::VALID_WORDS.contains(&&guess[..]) {
+            return Err(WordleError::InvalidWord);
+        }
+
+        Ok(())
     }
 
     /// Guess the given word against the secret word.
@@ -48,15 +69,9 @@ impl Game {
     /// If there are more occurences of that letter in the target word, it is in the [WrongPosition](letters::Position::WrongPosition).
     /// If all the occurences of that letter have been placed correctly, it is [NotInWord](letters::Position::NotInWord).
     pub fn make_guess(&self, guess: &str) -> Result<[Letter; 5], WordleError> {
-        let guess = guess.to_ascii_uppercase();
+        Game::is_valid_guess(&guess)?;
 
-        if !guess.is_ascii() {
-            return Err(WordleError::IncludesNonAscii);
-        } else if guess.len() != 5 {
-            return Err(WordleError::WrongWordLength);
-        } else if !valid_words::VALID_WORDS.contains(&&guess[..]) {
-            return Err(WordleError::InvalidWord);
-        }
+        let guess = guess.to_ascii_uppercase();
 
         let pairs: Vec<(char, char)> = guess.chars().zip(self.word.chars()).collect();
 
@@ -164,23 +179,26 @@ mod tests {
     fn make_guess_invalid_inputs() {
         let game = Game::new();
 
-        assert_eq!(game.make_guess("spurg"), Err(WordleError::InvalidWord));
-        assert_eq!(game.make_guess("HYiiA"), Err(WordleError::InvalidWord));
-        assert_eq!(game.make_guess("olleh"), Err(WordleError::InvalidWord));
+        for guess in ["spurg", "HYiiA", "olleh"] {
+            assert_eq!(game.make_guess(guess), Err(WordleError::InvalidWord));
+            assert_eq!(Game::is_valid_guess(guess), Err(WordleError::InvalidWord));
+        }
 
-        assert_eq!(game.make_guess("Öster"), Err(WordleError::IncludesNonAscii));
-        assert_eq!(game.make_guess("Złoty"), Err(WordleError::IncludesNonAscii));
-        assert_eq!(
-            game.make_guess("Schrödinger"),
-            Err(WordleError::IncludesNonAscii)
-        );
+        for guess in ["Öster", "Złoty", "Schrödinger"] {
+            assert_eq!(game.make_guess(guess), Err(WordleError::IncludesNonAscii));
+            assert_eq!(
+                Game::is_valid_guess(guess),
+                Err(WordleError::IncludesNonAscii)
+            );
+        }
 
-        assert_eq!(game.make_guess(""), Err(WordleError::WrongWordLength));
-        assert_eq!(game.make_guess("hi"), Err(WordleError::WrongWordLength));
-        assert_eq!(
-            game.make_guess("this should fail"),
-            Err(WordleError::WrongWordLength)
-        );
+        for guess in ["", "hi", "this should fail"] {
+            assert_eq!(game.make_guess(guess), Err(WordleError::WrongWordLength));
+            assert_eq!(
+                Game::is_valid_guess(guess),
+                Err(WordleError::WrongWordLength)
+            );
+        }
     }
 
     #[test]
