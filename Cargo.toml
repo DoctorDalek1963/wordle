@@ -6,10 +6,6 @@ readme = "README.md"
 repository = "https://github.com/DoctorDalek1963/wordle"
 license = "MIT"
 
-[lib]
-name = "wordle"
-path = "src/wordle.rs"
-
 [[bin]]
 name = "wordle-cli"
 path = "src/bin/cli.rs"
