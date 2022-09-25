@@ -43,9 +43,11 @@ fn main() {
 
     let mut remaining_guesses: u8 = 6;
 
+    println!("Welcome to Wordle!\n");
+
     loop {
         if remaining_guesses == 0 {
-            println!("Out of guesses!");
+            println!("\nOut of guesses!");
             println!("Thanks for playing Worlde! The word was {}!", game.word);
             break;
         };
@@ -72,14 +74,14 @@ fn main() {
                     .count()
                     == 5
                 {
-                    println!("Congratulations! The word was {}!", game.word);
+                    println!("\nCongratulations! The word was {}!", game.word);
                     break;
                 }
 
                 remaining_guesses -= 1;
             }
             Err(_) => {
-                println!("Thanks for playing Worlde! The word was {}!", game.word);
+                println!("\nThanks for playing Worlde! The word was {}!", game.word);
                 break;
             }
         };
