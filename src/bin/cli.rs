@@ -171,16 +171,16 @@ fn main() {
             .prompt()
         {
             Ok(guess) => {
-                let letters = game.make_guess(&guess).expect(&format!(
-                    "User should not have been able to enter any invalid guess: {guess:?}"
-                ));
+                let letters = game.make_guess(&guess).unwrap_or_else(|_| {
+                    panic!("User should not have been able to enter any invalid guess: {guess:?}")
+                });
 
                 past_guesses.push(letters);
 
                 clear_terminal();
 
                 for guess in &past_guesses {
-                    print_guess(&guess);
+                    print_guess(guess);
                 }
                 println!();
 
