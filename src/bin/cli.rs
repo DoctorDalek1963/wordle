@@ -160,7 +160,7 @@ fn main() {
     loop {
         if remaining_guesses == 0 {
             println!("\nOut of guesses!");
-            println!("Thanks for playing Worlde! The word was {}!", game.word);
+            println!("Thanks for playing Wordle! The word was {}!", game.word);
             break;
         };
 
@@ -199,7 +199,7 @@ fn main() {
                 remaining_guesses -= 1;
             }
             Err(_) => {
-                println!("\nThanks for playing Worlde! The word was {}!", game.word);
+                println!("\nThanks for playing Wordle! The word was {}!", game.word);
                 break;
             }
         };
