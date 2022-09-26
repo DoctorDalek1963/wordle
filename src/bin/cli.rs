@@ -42,9 +42,11 @@ fn pretty_print_letter_struct(letter: &Letter) -> String {
     pretty_print_letter_with_position(&letter.letter, &Some(letter.position))
 }
 
-/// Print the player's guess word highlighted according to classic Wordle colours.
+/// Print the player's guess word highlighted according to classic Wordle colours, indented by 7 spaces.
+///
+/// The identation is to align with the printed keyboard. See [`print_keyboard`].
 fn print_guess(letters: &[Letter; 5]) {
-    print!("{}", style::Bold);
+    print!("       {}", style::Bold);
     for letter in letters.map(|l| pretty_print_letter_struct(&l)) {
         print!("{}", letter);
     }
@@ -87,6 +89,13 @@ fn print_keyboard(keyboard: &HashMap<char, Option<Position>>) {
     println!("{}", style::Reset);
 }
 
+/// Clear the terminal.
+///
+/// This CLI binary is only designed for Linux terminals, so we use ANSI codes.
+fn clear_terminal() {
+    print!("{}[2J", 27 as char);
+}
+
 fn main() {
     let mut game = Game::new();
 
@@ -94,20 +103,15 @@ fn main() {
         let valid = Game::is_valid_guess(input);
         match valid {
             Ok(()) => Ok(Validation::Valid),
-            Err((error, guess)) => {
-                // If the guess is the empty string, then we want to show the user the keyboard
-                if guess.is_empty() {
-                    Ok(Validation::Valid)
-                } else {
-                    Ok(Validation::Invalid(error.into()))
-                }
-            }
+            Err((error, _)) => Ok(Validation::Invalid(error.into())),
         }
     };
 
     let mut remaining_guesses: u8 = 6;
+    let mut past_guesses: Vec<[Letter; 5]> = Vec::new();
 
     println!("Welcome to Wordle!\n");
+    println!("You have 6 guesses.\n");
 
     loop {
         if remaining_guesses == 0 {
@@ -122,18 +126,20 @@ fn main() {
             .prompt()
         {
             Ok(guess) => {
-                if guess.is_empty() {
-                    print_keyboard(&game.keyboard);
+                let letters = game.make_guess(&guess).expect(&format!(
+                    "User should not have been able to enter any invalid guess: {guess:?}"
+                ));
 
-                    // This doesn't count as a guess, so we keep looping
-                    continue;
-                };
+                past_guesses.push(letters);
 
-                let letters = game.make_guess(&guess).expect(
-                    "User should not have been able to enter any invalid guess: `{guess:?}`",
-                );
+                clear_terminal();
 
-                print_guess(&letters);
+                for guess in &past_guesses {
+                    print_guess(&guess);
+                }
+                println!();
+
+                print_keyboard(&game.keyboard);
 
                 if letters
                     .iter()

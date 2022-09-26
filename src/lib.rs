@@ -258,9 +258,8 @@ mod ordered_position {
 
     impl Ord for OrderedPosition {
         fn cmp(&self, other: &Self) -> Ordering {
-            self.partial_cmp(other).expect(
-                "Comparing a `DummyPosition` to a `DummyPosition` should never return `None`",
-            )
+            self.partial_cmp(other)
+                .expect("Comparing two `OrderedPosition` structs should never return `None`")
         }
     }
 }
