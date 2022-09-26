@@ -1,11 +1,17 @@
 use std::collections::HashMap;
 
-use inquire::{validator::Validation, Text};
-use termion::{color, style};
+use inquire::{
+    ui::{RenderConfig, Styled},
+    validator::Validation,
+    Text,
+};
+use termion::style;
 use wordle::{
     letters::{Letter, Position},
     Game,
 };
+
+const TOTAL_GUESSES: u8 = 6;
 
 /// Return a string with the given letter and the appropriate colour for its position type.
 ///
@@ -16,6 +22,8 @@ use wordle::{
 /// terminal colours at the end of the letter. Each colour overrides the last, and the colours
 /// only need to be reset at the end of the word.
 fn pretty_print_letter_with_position(letter: &char, position: &Option<Position>) -> String {
+    use termion::color;
+
     let mut string: String = match position {
         None => format!("{}", color::Fg(color::White)),
         Some(position) => match position {
@@ -96,6 +104,43 @@ fn clear_terminal() {
     print!("{}[2J", 27 as char);
 }
 
+fn create_render_config(guesses: &u8) -> RenderConfig {
+    use inquire::ui::Color;
+
+    // This section is needed because RenderConfig.prompt_prefix needs to be
+    // Styled<&'static str>, so the string needs to be a literal
+
+    // NOTE: If we ever change the TOTAL_GUESSES, then this section also needs to change
+
+    let prompt_prefix = Styled::new(match guesses {
+        6 => "(1/6) >",
+        5 => "(2/6) >",
+        4 => "(3/6) >",
+        3 => "(4/6) >",
+        2 => "(5/6) >",
+        1 => "(6/6) >",
+        _ => unreachable!("We should never want a prompt with more than 6 guesses"),
+    })
+    .with_fg(Color::LightGreen);
+
+    let answered_prompt_prefix = Styled::new(match guesses {
+        6 => "(1/6) >",
+        5 => "(2/6) >",
+        4 => "(3/6) >",
+        3 => "(4/6) >",
+        2 => "(5/6) >",
+        1 => "(6/6) >",
+        _ => unreachable!("We should never want a prompt with more than 6 guesses"),
+    })
+    .with_fg(Color::Black);
+
+    let mut config = RenderConfig::default_colored();
+    config.prompt_prefix = prompt_prefix;
+    config.answered_prompt_prefix = answered_prompt_prefix;
+
+    config
+}
+
 fn main() {
     let mut game = Game::new();
 
@@ -107,11 +152,10 @@ fn main() {
         }
     };
 
-    let mut remaining_guesses: u8 = 6;
+    let mut remaining_guesses: u8 = TOTAL_GUESSES;
     let mut past_guesses: Vec<[Letter; 5]> = Vec::new();
 
     println!("Welcome to Wordle!\n");
-    println!("You have 6 guesses.\n");
 
     loop {
         if remaining_guesses == 0 {
@@ -121,6 +165,7 @@ fn main() {
         };
 
         match Text::new("")
+            .with_render_config(create_render_config(&remaining_guesses))
             .with_validator(validator)
             .with_formatter(&str::to_ascii_uppercase)
             .prompt()
