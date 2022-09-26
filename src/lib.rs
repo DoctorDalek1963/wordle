@@ -275,7 +275,7 @@ mod tests {
 
     #[test]
     fn make_guess_invalid_inputs() {
-        let game = Game::new();
+        let mut game = Game::new();
 
         for guess in ["spurg", "HYiiA", "olleh"] {
             assert_eq!(
@@ -313,7 +313,7 @@ mod tests {
 
     #[test]
     fn make_guess_correct_output() {
-        let game = Game {
+        let mut game = Game {
             word: "DYSON".to_string(),
             keyboard: get_keyboard(),
         };
@@ -389,7 +389,7 @@ mod tests {
             ]
         );
 
-        let game = Game {
+        let mut game = Game {
             word: "BLEEP".to_string(),
             keyboard: get_keyboard(),
         };
@@ -407,7 +407,7 @@ mod tests {
             ]
         );
 
-        let game = Game {
+        let mut game = Game {
             word: "EERIE".to_string(),
             keyboard: get_keyboard(),
         };
