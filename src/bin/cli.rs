@@ -37,7 +37,7 @@ fn pretty_print_letter_with_position(letter: &char, position: &Option<Position>)
 
 /// Return a string with the given letter and the appropriate colour for its position type.
 ///
-/// See [pretty_print_letter_with_position].
+/// See [`pretty_print_letter_with_position`].
 fn pretty_print_letter_struct(letter: &Letter) -> String {
     pretty_print_letter_with_position(&letter.letter, &Some(letter.position))
 }
@@ -54,7 +54,7 @@ fn print_guess(letters: &[Letter; 5]) {
 /// Print the standard QWERTY keyboard with the letters highlighted as the best position they've
 /// seen in a previous guess.
 ///
-/// See [Game::keyboard].
+/// See [`Game::keyboard`].
 fn print_keyboard(keyboard: &HashMap<char, Option<Position>>) {
     // We're assuming a standard QWERTY keyboard for convenience
     const ROW_1: [char; 10] = ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'];
@@ -118,7 +118,7 @@ fn main() {
 
         match Text::new("")
             .with_validator(validator)
-            .with_formatter(&|input: &str| input.to_ascii_uppercase())
+            .with_formatter(&str::to_ascii_uppercase)
             .prompt()
         {
             Ok(guess) => {

@@ -25,16 +25,16 @@ pub struct Game {
     /// This keyboard hashmap must contain all uppercase Latin letters, and maps them to the best
     /// position they've seen in a previous guess.
     ///
-    /// If they have not been guessed previously, this is [None], otherwise
-    /// [NotInWord](Position::NotInWord) is the lowest position, then
-    /// [WrongPosition](Position::WrongPosition), and then [Correct](Position::Correct).
+    /// If they have not been guessed previously, this is [`None`], otherwise
+    /// [`NotInWord`](Position::NotInWord) is the lowest position, then
+    /// [`WrongPosition`](Position::WrongPosition), and then [`Correct`](Position::Correct).
     pub keyboard: HashMap<char, Option<Position>>,
 }
 
 impl Game {
-    /// Create a game by choosing a random word from [GOOD_WORDS](valid_words::GOOD_WORDS).
+    /// Create a game by choosing a random word from [`GOOD_WORDS`](valid_words::GOOD_WORDS).
     ///
-    /// This constructor also ensures that the [keyboard](Game::keyboard) contains all uppercase
+    /// This constructor also ensures that the [`keyboard`](Game::keyboard) contains all uppercase
     /// Latin letters.
     pub fn new() -> Self {
         let word = *valid_words::GOOD_WORDS
@@ -55,13 +55,14 @@ impl Game {
 
     /// Check if the guess is valid.
     ///
-    /// A guess is only valid if it is a five letter word in [VALID_WORDS](valid_words::VALID_WORDS).
+    /// A guess is only valid if it is a five letter word in [`VALID_WORDS`](valid_words::VALID_WORDS).
     /// That means it must be exclusively ASCII, have a length of 5 characters, and be in the list.
     ///
     /// A guess does not have to be uppercase to be valid. It is made uppercase automatically.
     ///
-    /// If a guess is invalid, we return the appropriate [GuessError] variant, wrapping the
-    /// uppercase version of the guess.
+    /// # Errors
+    ///
+    /// If a guess is invalid, we return the appropriate [`GuessError`] variant.
     pub fn is_valid_guess(guess: &str) -> Result<(), (GuessError, String)> {
         let guess = guess.to_ascii_uppercase();
 
@@ -78,17 +79,22 @@ impl Game {
 
     /// Guess the given word against the secret word.
     ///
-    /// This method returns an array of five [Letter](letters::Letter)s. Each Letter has a [Position](letters::Position).
+    /// This method returns an array of five [`Letter`](letters::Letter)s. Each Letter has a [`Position`](letters::Position).
     /// As per classic Wordle rules, the positions are calculated as follows:
     ///
-    /// If a letter is in the word and in the correct position, then it is [Correct](letters::Position::Correct).
-    /// If a letter is not in the word at all, then it is [NotInWord](letters::Position::NotInWord).
+    /// If a letter is in the word and in the correct position, then it is [`Correct`](letters::Position::Correct).
+    /// If a letter is not in the word at all, then it is [`NotInWord`](letters::Position::NotInWord).
     ///
     /// If a letter is in the word but not in the correct position, then:
-    /// If there are more occurences of that letter in the target word, it is in the [WrongPosition](letters::Position::WrongPosition).
-    /// If all the occurences of that letter have been placed correctly, it is [NotInWord](letters::Position::NotInWord).
+    /// If there are more occurences of that letter in the target word, it is in the [`WrongPosition`](letters::Position::WrongPosition).
+    /// If all the occurences of that letter have been placed correctly, it is [`NotInWord`](letters::Position::NotInWord).
+    ///
+    /// # Errors
+    ///
+    /// If the guess is invalid, we return the appropriate [`GuessError`] variant. See
+    /// [`is_valid_guess`](Game::is_valid_guess).
     pub fn make_guess(&mut self, guess: &str) -> Result<[Letter; 5], (GuessError, String)> {
-        Game::is_valid_guess(&guess)?;
+        Self::is_valid_guess(guess)?;
 
         let guess = guess.to_ascii_uppercase();
 
@@ -142,15 +148,13 @@ impl Game {
             correct_letters_map.insert(c, (correct_letters, instances_in_word_map.get(&c).expect("`instances_in_word_map` should contain all letters in the Latin alphabet ({c:?})") - correct_letters));
         }
 
-        let letters: [Letter; 5] = optional_letters.map(|(orig_char, opt_letter)| {
-            if opt_letter.is_some() {
-                opt_letter.unwrap()
-            } else {
+        let letters: [Letter; 5] = optional_letters.map(|(orig_char, opt_letter)|
+            opt_letter.map_or_else(|| {
                 // If we get here, then the letter is either in the wrong position, or all
                 // occurences of this letter have been placed correctly already
                 let instances_in_word = instances_in_word_map.get(&orig_char).expect("`instances_in_word_map` should contain all letters in the Latin alphabet ({orig_char:?})");
 
-                let (instances_in_correct_positions_in_guess, remaining_places) =
+                let (instances_in_correct_positions_in_guess, remaining_places): &(usize, usize) =
                     correct_letters_map.get(&orig_char).expect(
                         "`correct_letters_map` should contain all letters in the Latin alphabet ({orig_char:?})",
                     );
@@ -159,7 +163,7 @@ impl Game {
                 // in the current guess
                 // We also know that this letter is not in the correct position, and instances_in_word > 0
 
-                match instances_in_word.cmp(&instances_in_correct_positions_in_guess) {
+                match instances_in_word.cmp(instances_in_correct_positions_in_guess) {
                     Ordering::Greater => {
                         if *remaining_places > 0 {
                             // The letter needs to stay in the guess, but in a different position
@@ -183,8 +187,8 @@ impl Game {
                         "in the guess than there are instances in the target word"
                     )),
                 }
-            }
-        });
+            }, |l| l)
+        );
 
         self.update_keyboard(&letters);
 
@@ -201,8 +205,8 @@ impl Game {
                 .get(&letter.letter)
                 .expect("Game::keyboard should contain all Latin letters");
 
-            if let Ordering::Greater =
-                OrderedPosition(Some(letter.position)).cmp(&OrderedPosition(*current_pos))
+            if OrderedPosition(Some(letter.position)).cmp(&OrderedPosition(*current_pos))
+                == Ordering::Greater
             {
                 let pos = self
                     .keyboard
@@ -222,8 +226,8 @@ mod ordered_position {
     #[derive(Debug, Eq, PartialEq)]
     pub struct OrderedPosition(pub Option<Position>);
 
-    impl PartialOrd<OrderedPosition> for OrderedPosition {
-        fn partial_cmp(&self, other: &OrderedPosition) -> Option<Ordering> {
+    impl PartialOrd<Self> for OrderedPosition {
+        fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
             let this = self.0;
             let other = other.0;
 
@@ -236,7 +240,7 @@ mod ordered_position {
                     Position::NotInWord => match other {
                         None => Ordering::Greater,
                         Some(Position::NotInWord) => Ordering::Equal,
-                        Some(Position::WrongPosition) | Some(Position::Correct) => Ordering::Less,
+                        Some(Position::WrongPosition | Position::Correct) => Ordering::Less,
                     },
                     Position::WrongPosition => match other {
                         None | Some(Position::NotInWord) => Ordering::Greater,
