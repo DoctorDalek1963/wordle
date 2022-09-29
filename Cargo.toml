@@ -6,14 +6,9 @@ readme = "README.md"
 repository = "https://github.com/DoctorDalek1963/wordle"
 license = "MIT"
 
-[[bin]]
-name = "wordle-cli"
-path = "src/bin/cli.rs"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace]
+members = ["cli"]
 
 [dependencies]
-inquire = { version = "0.3.0", default-features = false, features = ["termion"] }
 rand = "0.8.5"
-termion = "1.5.6"
 thiserror = "1.0.35"

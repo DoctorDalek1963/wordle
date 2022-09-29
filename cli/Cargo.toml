@@ -1,0 +1,11 @@
+[package]
+name = "wordle-cli"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+wordle = { path = ".." }
+
+inquire = { version = "0.3.0", default-features = false, features = ["termion"] }
+termion = "1.5.6"
