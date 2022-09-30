@@ -4,9 +4,7 @@ use wordle::{
 };
 use yew::{classes, html, Component, Context, Html, Properties};
 
-struct LetterComp {
-    props: LetterProps,
-}
+struct LetterComp {}
 
 #[derive(Clone, PartialEq, Properties)]
 struct LetterProps {
@@ -18,13 +16,11 @@ impl Component for LetterComp {
     type Message = ();
     type Properties = LetterProps;
 
-    fn create(ctx: &Context<Self>) -> Self {
-        Self {
-            props: ctx.props().clone(),
-        }
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self {}
     }
 
-    fn view(&self, _ctx: &Context<Self>) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         fn position_to_class(letter: Letter) -> &'static str {
             match letter.position {
                 Position::NotInWord => "notinword",
@@ -33,12 +29,12 @@ impl Component for LetterComp {
             }
         }
 
-        match self.props.letter {
+        match ctx.props().letter {
             None => html! {
-                <div class="letter" style={format!("animation-delay: {}ms;", self.props.delay)} />
+                <div class="letter" style={format!("animation-delay: {}ms;", ctx.props().delay)} />
             },
             Some(letter) => html! {
-                <div class={classes!("letter", position_to_class(letter))} style={format!("animation-delay: {}ms;", self.props.delay)}>
+                <div class={classes!("letter", position_to_class(letter))} style={format!("animation-delay: {}ms;", ctx.props().delay)}>
                     {letter.letter}
                 </div>
             },
@@ -46,84 +42,67 @@ impl Component for LetterComp {
     }
 }
 
-pub struct RowComp {
-    props: RowProps,
-}
+pub struct RowComp {}
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct RowProps {
     letters: Option<[Letter; 5]>,
 }
 
-pub struct NewGuessMessage([Letter; 5]);
-
 impl Component for RowComp {
-    type Message = NewGuessMessage;
+    type Message = ();
     type Properties = RowProps;
 
-    fn create(ctx: &Context<Self>) -> Self {
-        Self {
-            props: ctx.props().clone(),
-        }
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self {}
     }
 
-    fn view(&self, _ctx: &Context<Self>) -> Html {
-        match self.props.letters {
-            None => html! {
-                <div class="row">
-                    <LetterComp letter={None} delay=0 />
-                    <LetterComp letter={None} delay=100 />
-                    <LetterComp letter={None} delay=200 />
-                    <LetterComp letter={None} delay=300 />
-                    <LetterComp letter={None} delay=400 />
-                </div>
-            },
-            Some(letters) => html! {
-                <div class="row">
-                    <LetterComp letter={letters[0]} delay=0 />
-                    <LetterComp letter={letters[1]} delay=100 />
-                    <LetterComp letter={letters[2]} delay=200 />
-                    <LetterComp letter={letters[3]} delay=300 />
-                    <LetterComp letter={letters[4]} delay=400 />
-                </div>
-            },
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        fn get_option_letter(letters: Option<[Letter; 5]>, index: usize) -> Option<Letter> {
+            Some(letters?[index])
         }
-    }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
-        self.props.letters = Some(msg.0);
-        true
+        html! {
+            <div class="row">
+                <LetterComp letter={get_option_letter(ctx.props().letters, 0)} delay=0 />
+                <LetterComp letter={get_option_letter(ctx.props().letters, 1)} delay=100 />
+                <LetterComp letter={get_option_letter(ctx.props().letters, 2)} delay=200 />
+                <LetterComp letter={get_option_letter(ctx.props().letters, 3)} delay=300 />
+                <LetterComp letter={get_option_letter(ctx.props().letters, 4)} delay=400 />
+            </div>
+        }
     }
 }
 
-pub struct BoardComp {
-    props: BoardProps,
-}
+pub struct BoardComp {}
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct BoardProps {
     pub game: Game,
+    pub guesses: Vec<[Letter; 5]>,
 }
 
 impl Component for BoardComp {
-    type Message = NewGuessMessage;
+    type Message = ();
     type Properties = BoardProps;
 
-    fn create(ctx: &Context<Self>) -> Self {
-        Self {
-            props: ctx.props().clone(),
-        }
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self {}
     }
 
-    fn view(&self, _ctx: &Context<Self>) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        fn deref_option_value<T: Clone>(x: Option<&T>) -> Option<T> {
+            Some(x?.clone())
+        }
+
         html! {
             <div class="board">
-                <RowComp letters={None} />
-                <RowComp letters={None} />
-                <RowComp letters={None} />
-                <RowComp letters={None} />
-                <RowComp letters={None} />
-                <RowComp letters={None} />
+                <RowComp letters={deref_option_value(ctx.props().guesses.get(0))} />
+                <RowComp letters={deref_option_value(ctx.props().guesses.get(1))} />
+                <RowComp letters={deref_option_value(ctx.props().guesses.get(2))} />
+                <RowComp letters={deref_option_value(ctx.props().guesses.get(3))} />
+                <RowComp letters={deref_option_value(ctx.props().guesses.get(4))} />
+                <RowComp letters={deref_option_value(ctx.props().guesses.get(5))} />
             </div>
         }
     }
