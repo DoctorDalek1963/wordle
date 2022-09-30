@@ -27,9 +27,9 @@ impl Component for LetterComp {
     fn view(&self, _ctx: &Context<Self>) -> Html {
         fn position_to_class(letter: Letter) -> &'static str {
             match letter.position {
-                Position::NotInWord => "letter-notinword",
-                Position::WrongPosition => "letter-wrongposition",
-                Position::Correct => "letter-correct",
+                Position::NotInWord => "notinword",
+                Position::WrongPosition => "wrongposition",
+                Position::Correct => "correct",
             }
         }
 

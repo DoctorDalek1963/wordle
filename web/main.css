@@ -1,0 +1,68 @@
+html, body {
+	margin: 0;
+	height: 100%;
+}
+
+.letter {
+	border: 2px solid black;
+
+	width: 100%;
+	display: inline-flex;
+	justify-content: center;
+	align-items: center;
+
+	font-weight: bold;
+	vertical-align: middle;
+	box-sizing: border-box;
+
+	text-transform: uppercase;
+	user-select: none;
+}
+
+.letter.notinword {
+	background-color: #3a3a3c;
+}
+
+.letter.wrongposition {
+	background-color: #b59f3b;
+}
+
+.letter.correct {
+	background-color: #538d4e;
+}
+
+.row {
+	display: grid;
+	grid-template-columns: repeat(5, 1fr);
+	grid-gap: 5px;
+}
+
+.board {
+	display: grid;
+	grid-template-rows: repeat(6, 1fr);
+	grid-gap: 5px;
+	padding: 10px;
+	box-sizing: border-box;
+
+	width: 83.3%;
+	height: 100%;
+	max-height: 600px;
+}
+
+.board-container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-grow: 1;
+	overflow: hidden;
+	width: 100%;
+}
+
+.game {
+	width: 100%;
+	max-width: 500px;
+	margin: 0 auto;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}

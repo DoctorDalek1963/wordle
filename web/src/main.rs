@@ -18,8 +18,10 @@ impl Component for Model {
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
-            <div>
-                <BoardComp game={self.game.clone()}/>
+            <div class="game">
+                <div class="board-container">
+                    <BoardComp game={self.game.clone()}/>
+                </div>
             </div>
         }
     }
