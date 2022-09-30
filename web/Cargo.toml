@@ -1,0 +1,11 @@
+[package]
+name = "wordle-web"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+wordle = { path = ".." }
+
+getrandom = { version = "0.2", features = ["js"] }
+yew = "0.19"

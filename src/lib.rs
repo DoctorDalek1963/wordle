@@ -18,6 +18,7 @@ pub enum GuessError {
     InvalidWord,
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct Game {
     /// The target word to guess.
     pub word: String,

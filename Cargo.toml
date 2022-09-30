@@ -7,7 +7,7 @@ repository = "https://github.com/DoctorDalek1963/wordle"
 license = "MIT"
 
 [workspace]
-members = ["cli"]
+members = ["cli", "web"]
 
 [dependencies]
 rand = "0.8.5"
