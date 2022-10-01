@@ -31,7 +31,7 @@ impl Component for LetterComp {
 
         match ctx.props().letter {
             None => html! {
-                <div class="letter" style={format!("animation-delay: {}ms;", ctx.props().delay)} />
+                <div class="letter empty" style={format!("animation-delay: {}ms;", ctx.props().delay)} />
             },
             Some(letter) => html! {
                 <div class={classes!("letter", position_to_class(letter))} style={format!("animation-delay: {}ms;", ctx.props().delay)}>
