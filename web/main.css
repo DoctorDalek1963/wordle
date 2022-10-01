@@ -72,11 +72,11 @@
 	--key-bg-wrongposition: var(--color-wrongposition);
 	--key-bg-correct: var(--color-correct);
 	--key-bg-notinword: var(--color-notinword);
-	--modal-content-bg: var(--color-tone-7)
+	--modal-content-bg: var(--color-tone-7);
 }
 
 :root, .dark {
-	--color-background: var(--color-tone-7)
+	--color-background: var(--color-tone-7);
 }
 
 html, body {
