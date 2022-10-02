@@ -7,7 +7,7 @@ mod board;
 
 fn storage_get_dark_mode() -> Option<bool> {
     let storage = web_sys::window()?.local_storage().unwrap_or(None)?;
-    match storage.get_item("darkMode") {
+    match storage.get_item("wordleDarkMode") {
         Err(_) => None,
         Ok(opt_str) => match opt_str {
             None => None,
@@ -26,7 +26,7 @@ fn storage_get_dark_mode() -> Option<bool> {
 
 fn storage_set_dark_mode(dark_mode: bool) -> Option<()> {
     let storage = web_sys::window()?.local_storage().unwrap_or(None)?;
-    match storage.set_item("darkMode", &dark_mode.to_string()) {
+    match storage.set_item("wordleDarkMode", &dark_mode.to_string()) {
         Err(_) => None,
         Ok(_) => Some(()),
     }
