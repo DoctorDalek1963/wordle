@@ -1,4 +1,8 @@
 :root {
+	font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+
+	--header-height: 70px;
+
 	--green: #6aaa64;
 	--darkendGreen: #538d4e;
 	--yellow: #c9b458;
@@ -16,7 +20,6 @@
 	--black-4: #cfcfcf;
 	--orange: #f5793a;
 	--blue: #85c0f9;
-	font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
 
 	--color-tone-1: #000000;
 	--color-tone-2: #787c7e;
@@ -151,7 +154,41 @@ html, body {
 	width: 100%;
 	max-width: 500px;
 	margin: 0 auto;
-	height: 100%;
+	height: calc(100% - var(--header-height));
 	display: flex;
 	flex-direction: column;
+}
+
+header {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-start;
+	flex-wrap: nowrap;
+	padding: 0 20px;
+	height: var(--header-height);
+	color: var(--color-tone-1);
+	border-bottom: 1px solid var(--color-tone-4);
+}
+
+header div.wordle-title {
+	font-size: 3rem;
+	text-align: center;
+	flex-grow: 2;
+	font-weight: bold;
+	font-family: serif;
+}
+
+header button.dark-mode-button {
+	align-items: center;
+	border-radius: 50%;
+	display: flex;
+	height: 100%;
+	width: 100%;
+	justify-content: center;
+	border: none;
+	color: inherit;
+	cursor: pointer;
+	padding: 0;
+	background: var(--color-background);
 }
