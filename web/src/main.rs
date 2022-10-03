@@ -1,9 +1,10 @@
-use board::BoardComp;
+use crate::{board::BoardComp, keyboard::KeyboardComp};
 use rand::seq::SliceRandom;
 use wordle::{letters::Letter, Game};
 use yew::prelude::*;
 
 mod board;
+mod keyboard;
 
 fn storage_get_dark_mode() -> Option<bool> {
     let storage = web_sys::window()?.local_storage().unwrap_or(None)?;
@@ -144,6 +145,7 @@ impl Component for Model {
                         ))}>{ "BUTTON" }</button>
                     } else {}
                 </div>
+                <KeyboardComp />
             </div>
             </>
         }

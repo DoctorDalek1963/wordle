@@ -159,6 +159,12 @@ html, body {
 	flex-direction: column;
 }
 
+.keyboard {
+	height: 200px;
+	margin: 0 8px;
+	user-select: none;
+}
+
 header {
 	display: flex;
 	flex-direction: row;
