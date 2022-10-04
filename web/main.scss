@@ -1,8 +1,14 @@
+$header-height: 70px;
+$keyboard-height: 200px;
+
+@mixin centered-flex {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
 :root {
 	font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
-
-	--header-height: 70px;
-	--keyboard-height: 200px;
 
 	--green: #6aaa64;
 	--darkendGreen: #538d4e;
@@ -86,114 +92,110 @@
 html, body {
 	margin: 0;
 	height: 100%;
-
 	background-color: var(--color-background);
 }
 
-.letter {
-	width: 100%;
-	display: inline-flex;
-	justify-content: center;
-	align-items: center;
-
-	font-weight: bold;
-	vertical-align: middle;
-	box-sizing: border-box;
-
-	text-transform: uppercase;
-	user-select: none;
-
-	color: var(--letter-text-color);
-	font-size: 2rem;
-	line-height: 2rem;
-}
-
-.letter.empty {
-	border: 2px solid var(--color-tone-4);
-}
-
-.letter.guess {
-	background-color: var(--color-tone-7);
-	border: 2px solid var(--color-tone-3);
-	color: var(--color-tone-1);
-}
-
-.letter.notinword {
-	background-color: var(--color-notinword);
-}
-
-.letter.wrongposition {
-	background-color: var(--color-wrongposition);
-}
-
-.letter.correct {
-	background-color: var(--color-correct);
-}
-
-.row {
-	display: grid;
-	grid-template-columns: repeat(5, 1fr);
-	grid-gap: 5px;
-}
-
-.board {
-	display: grid;
-	grid-template-rows: repeat(6, 1fr);
-	grid-gap: 5px;
-	padding: 10px;
-	box-sizing: border-box;
-
-	width: 83.3%;
-	height: 100%;
-	max-height: 600px;
-}
-
-.board-container {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	flex-grow: 1;
-	overflow: hidden;
-	width: 100%;
-}
-
-.game {
+div.game {
 	width: 100%;
 	max-width: 500px;
 	margin: 0 auto;
-	height: calc(100% - var(--header-height));
+	height: calc(100% - $header-height);
 	display: flex;
 	flex-direction: column;
-}
 
-div.keyboard {
-	height: var(--keyboard-height);
-	margin: 0 8px;
-	user-select: none;
-}
+	div.board-container {
+		@include centered-flex;
+		flex-grow: 1;
+		overflow: hidden;
+		width: 100%;
 
-div.keyboard-row {
-	display: flex;
-	width: 100%;
-	margin: 0 auto 8px;
-}
+		div.board {
+			display: grid;
+			grid-template-rows: repeat(6, 1fr);
+			grid-gap: 5px;
+			padding: 10px;
+			box-sizing: border-box;
 
-button.keyboard-key {
-	font-family: inherit;
-	font-weight: bold;
-	border: 0;
-	padding: 0;
-	margin: 0 6px 0 0;
-	height: 58px;
-	border-radius: 4px;
-	user-select: none;
-	background-color: var(--key-bg);
-	color: var(--key-text-color);
-	flex: 1;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	text-transform: uppercase;
+			width: 83.3%;
+			height: 100%;
+			max-height: 600px;
+
+			div.row {
+				display: grid;
+				grid-template-columns: repeat(5, 1fr);
+				grid-gap: 5px;
+
+				div.letter {
+					width: 100%;
+					display: inline-flex;
+					justify-content: center;
+					align-items: center;
+
+					font-weight: bold;
+					vertical-align: middle;
+					box-sizing: border-box;
+
+					text-transform: uppercase;
+					user-select: none;
+
+					color: var(--letter-text-color);
+					font-size: 2rem;
+					line-height: 2rem;
+
+					&.empty {
+						border: 2px solid var(--color-tone-4);
+					}
+
+					&.guess {
+						background-color: var(--color-tone-7);
+						border: 2px solid var(--color-tone-3);
+						color: var(--color-tone-1);
+					}
+
+					&.notinword {
+						background-color: var(--color-notinword);
+					}
+
+					&.wrongposition {
+						background-color: var(--color-wrongposition);
+					}
+
+					&.correct {
+						background-color: var(--color-correct);
+					}
+				}
+			}
+		}
+	}
+
+	div.keyboard {
+		height: $keyboard-height;
+		margin: 8px;
+		margin-top: 0;
+		user-select: none;
+
+		div.keyboard-row {
+			display: flex;
+			width: 100%;
+			margin: 0 auto 8px;
+
+			button.keyboard-key {
+				@include centered-flex;
+				font-family: inherit;
+				font-weight: bold;
+				border: 0;
+				padding: 0;
+				margin: 0 6px 0 0;
+				height: 58px;
+				border-radius: 4px;
+				user-select: none;
+				background-color: var(--key-bg);
+				color: var(--key-text-color);
+				flex: 1;
+				text-transform: uppercase;
+			}
+		}
+	}
 }
 
 header {
@@ -203,29 +205,27 @@ header {
 	justify-content: flex-start;
 	flex-wrap: nowrap;
 	padding: 0 20px;
-	height: var(--header-height);
+	height: $header-height;
 	color: var(--color-tone-1);
 	border-bottom: 1px solid var(--color-tone-4);
-}
 
-header div.wordle-title {
-	font-size: 3rem;
-	text-align: center;
-	flex-grow: 2;
-	font-weight: bold;
-	font-family: serif;
-}
+	div.wordle-title {
+		font-size: 3rem;
+		text-align: center;
+		flex-grow: 2;
+		font-weight: bold;
+		font-family: serif;
+	}
 
-header button.dark-mode-button {
-	align-items: center;
-	border-radius: 50%;
-	display: flex;
-	height: 100%;
-	width: 100%;
-	justify-content: center;
-	border: none;
-	color: inherit;
-	cursor: pointer;
-	padding: 0;
-	background: var(--color-background);
+	button.dark-mode-button {
+		@include centered-flex;
+		border-radius: 50%;
+		height: 100%;
+		width: 100%;
+		border: none;
+		color: inherit;
+		cursor: pointer;
+		padding: 0;
+		background: var(--color-background);
+	}
 }
