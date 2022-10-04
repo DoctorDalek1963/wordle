@@ -66,11 +66,13 @@ fn set_dark_mode(dark_mode: bool) -> Option<()> {
 struct Model {
     game: Game,
     guesses: Vec<[Letter; 5]>,
+    current_guess: Option<Vec<char>>,
 }
 
 enum ModelMsg {
     MakeGuess(String),
     ToggleDarkMode,
+    AddToCurrentGuess(char),
 }
 
 impl Component for Model {
@@ -81,6 +83,7 @@ impl Component for Model {
         Self {
             game: Game::new(),
             guesses: Vec::new(),
+            current_guess: None,
         }
     }
 
@@ -98,6 +101,13 @@ impl Component for Model {
             Self::Message::ToggleDarkMode => {
                 let dark_mode = storage_get_dark_mode().unwrap_or(false);
                 storage_set_dark_mode(!dark_mode);
+                true
+            }
+            Self::Message::AddToCurrentGuess(letter) => {
+                match self.current_guess.as_mut() {
+                    Some(letters) => letters.push(letter),
+                    None => self.current_guess = Some(vec![letter]),
+                };
                 true
             }
         }
@@ -135,7 +145,7 @@ impl Component for Model {
             </header>
             <div class="game">
                 <div class="board-container">
-                    <BoardComp game={self.game.clone()} guesses={self.guesses.clone()} />
+                    <BoardComp game={self.game.clone()} guesses={self.guesses.clone()} current_guess={self.current_guess.clone()} />
                     if self.guesses.len() < 6 {
                         <button onclick={link.callback(|_| ModelMsg::MakeGuess(
                                 wordle::valid_words::VALID_WORDS

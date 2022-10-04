@@ -1,4 +1,9 @@
+use super::{Model, ModelMsg};
 use yew::{html, html::Scope, Component, Context, Html, Properties};
+
+fn get_parent<PARENT: Component, COMP: Component>(ctx: &Context<COMP>) -> Scope<PARENT> {
+    ctx.link().get_parent().unwrap().clone().downcast()
+}
 
 struct KeyComp {}
 
@@ -16,8 +21,12 @@ impl Component for KeyComp {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
+        let parent: Scope<KeyboardComp> = get_parent(ctx);
+        let letter = ctx.props().letter;
+        let onclick = parent.callback(move |_| KeyboardMsg::AddToCurrentGuess(letter));
+
         html! {
-            <button class="keyboard-key">{ ctx.props().letter }</button>
+            <button class="keyboard-key" {onclick}>{ ctx.props().letter }</button>
         }
     }
 }
@@ -27,22 +36,33 @@ pub struct KeyboardComp {}
 #[derive(Clone, PartialEq, Properties)]
 pub struct KeyboardProps {}
 
+pub enum KeyboardMsg {
+    AddToCurrentGuess(char),
+}
+
 impl Component for KeyboardComp {
-    type Message = ();
+    type Message = KeyboardMsg;
     type Properties = KeyboardProps;
 
     fn create(_ctx: &Context<Self>) -> Self {
         Self {}
     }
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        use super::{Model, ModelMsg};
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+        match msg {
+            Self::Message::AddToCurrentGuess(letter) => {
+                let parent: Scope<Model> = get_parent(ctx);
+                parent
+                    .callback(move |_| ModelMsg::AddToCurrentGuess(letter))
+                    .emit(());
+                true
+            }
+        }
+    }
 
-        let parent: Scope<Model> = ctx.link().get_parent().unwrap().clone().downcast();
-
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
             <div class="keyboard">
-                <button onclick={parent.callback(|_| ModelMsg::MakeGuess("booby".to_string()))}>{ "Keyboard Button" }</button>
                 <div class="keyboard-row">
                     <KeyComp letter={'q'} />
                     <KeyComp letter={'w'} />
@@ -66,7 +86,7 @@ impl Component for KeyboardComp {
                     <KeyComp letter={'k'} />
                     <KeyComp letter={'l'} />
                 </div>
-                <div>
+                <div class="keyboard-row">
                     <KeyComp letter={'z'} />
                     <KeyComp letter={'x'} />
                     <KeyComp letter={'c'} />
