@@ -129,17 +129,15 @@ impl Component for BoardComp {
 
             if let Some(letters) = props.guesses.get(index) {
                 html! {
-                    <RowComp letters={letters.clone()} current_guess={None} />
+                    <RowComp letters={*letters} current_guess={None} />
+                }
+            } else if index == props.guesses.len() {
+                html! {
+                    <RowComp letters={None} current_guess={props.current_guess.clone()} />
                 }
             } else {
-                if index == props.guesses.len() {
-                    html! {
-                        <RowComp letters={None} current_guess={props.current_guess.clone()} />
-                    }
-                } else {
-                    html! {
-                        <RowComp letters={None} current_guess={None} />
-                    }
+                html! {
+                    <RowComp letters={None} current_guess={None} />
                 }
             }
         };
