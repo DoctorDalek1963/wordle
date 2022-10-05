@@ -1,6 +1,7 @@
 use crate::{board::BoardComp, keyboard::KeyboardComp};
 use rand::seq::SliceRandom;
-use wordle::{letters::Letter, Game};
+use web_sys::KeyboardEvent;
+use wordle::{letters::Letter, valid_words::ALPHABET, Game};
 use yew::prelude::*;
 
 mod board;
@@ -67,6 +68,7 @@ struct Model {
 }
 
 enum ModelMsg {
+    DoNothing,
     MakeGuess(String),
     ToggleDarkMode,
     AddToCurrentGuess(char),
@@ -88,10 +90,12 @@ impl Component for Model {
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
+            Self::Message::DoNothing => false,
             Self::Message::MakeGuess(guess) => {
                 match self.game.make_guess(&guess) {
                     Ok(letters) => {
                         self.guesses.push(letters);
+                        self.current_guess = None;
                     }
                     Err(_) => unimplemented!(),
                 };
@@ -160,6 +164,22 @@ impl Component for Model {
         };
 
         let link = ctx.link();
+
+        let onkeydown = link.callback(|event: KeyboardEvent| {
+            let key = event.key().to_ascii_lowercase();
+            if key.len() == 1
+                && ALPHABET.contains(&key.to_ascii_uppercase().chars().next().unwrap())
+            {
+                Self::Message::AddToCurrentGuess(key.chars().next().unwrap())
+            } else if key == "enter" {
+                Self::Message::SendEnter
+            } else if key == "backspace" {
+                Self::Message::SendBackspace
+            } else {
+                Self::Message::DoNothing
+            }
+        });
+
         html! {
             <>
             <header>
@@ -170,7 +190,7 @@ impl Component for Model {
                     </button>
                 </div>
             </header>
-            <div class="game">
+            <div {onkeydown} class="game">
                 <div class="board-container">
                     <BoardComp game={self.game.clone()} guesses={self.guesses.clone()} current_guess={self.current_guess.clone()} />
                     if self.guesses.len() < 6 {

@@ -1,4 +1,5 @@
 use super::{Model, ModelMsg};
+use web_sys::MouseEvent;
 use yew::{html, html::Scope, Component, Context, Html, Properties};
 
 fn get_parent<PARENT: Component, COMP: Component>(ctx: &Context<COMP>) -> Scope<PARENT> {
@@ -23,7 +24,13 @@ impl Component for KeyComp {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let parent: Scope<KeyboardComp> = get_parent(ctx);
         let letter = ctx.props().letter;
-        let onclick = parent.callback(move |_| KeyboardMsg::AddToCurrentGuess(letter));
+        let onclick = parent.callback(move |event: MouseEvent| {
+            if event.detail() == 0 {
+                KeyboardMsg::DoNothing
+            } else {
+                KeyboardMsg::AddToCurrentGuess(letter)
+            }
+        });
 
         html! {
             <button class="keyboard-key" {onclick}>{ ctx.props().letter }</button>
@@ -79,6 +86,7 @@ pub struct KeyboardComp {}
 pub struct KeyboardProps {}
 
 pub enum KeyboardMsg {
+    DoNothing,
     AddToCurrentGuess(char),
     SendEnter,
     SendBackspace,
@@ -96,6 +104,7 @@ impl Component for KeyboardComp {
         let parent: Scope<Model> = get_parent(ctx);
         parent
             .callback(move |_| match msg {
+                Self::Message::DoNothing => ModelMsg::DoNothing,
                 Self::Message::AddToCurrentGuess(letter) => ModelMsg::AddToCurrentGuess(letter),
                 Self::Message::SendEnter => ModelMsg::SendEnter,
                 Self::Message::SendBackspace => ModelMsg::SendBackspace,
