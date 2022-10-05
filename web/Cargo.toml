@@ -10,4 +10,4 @@ rand = "0.8.5"
 
 getrandom = { version = "0.2", features = ["js"] }
 yew = "0.19"
-web-sys = { version = "0.3.60", features = ["Document", "DomTokenList", "Element", "HtmlElement", "Storage", "UiEvent"] }
+web-sys = { version = "0.3.60", features = ["DomTokenList"] }
