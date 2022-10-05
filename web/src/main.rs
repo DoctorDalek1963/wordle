@@ -1,8 +1,7 @@
 use crate::{board::BoardComp, keyboard::KeyboardComp};
-use rand::seq::SliceRandom;
 use web_sys::KeyboardEvent;
 use wordle::{letters::Letter, valid_words::ALPHABET, Game};
-use yew::prelude::*;
+use yew::{html, Component, Context, Html};
 
 mod board;
 mod keyboard;
@@ -110,7 +109,7 @@ impl Component for Model {
                 match self.current_guess.as_mut() {
                     Some(letters) => {
                         if letters.len() < 5 {
-                            letters.push(letter)
+                            letters.push(letter);
                         }
                     }
                     None => self.current_guess = Some(vec![letter]),
@@ -122,7 +121,7 @@ impl Component for Model {
                     if chars.len() == 5 {
                         let guess: String = chars.iter().collect();
                         self.current_guess = None;
-                        return self.update(ctx, Self::Message::MakeGuess(guess));
+                        self.update(ctx, Self::Message::MakeGuess(guess))
                     } else {
                         false
                     }
