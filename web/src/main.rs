@@ -193,14 +193,6 @@ impl Component for Model {
             <div {onkeydown} class="game">
                 <div class="board-container">
                     <BoardComp game={self.game.clone()} guesses={self.guesses.clone()} current_guess={self.current_guess.clone()} />
-                    if self.guesses.len() < 6 {
-                        <button onclick={link.callback(|_| ModelMsg::MakeGuess(
-                                wordle::valid_words::VALID_WORDS
-                                .choose(&mut rand::thread_rng())
-                                .unwrap()
-                                .to_string()
-                        ))}>{ "BUTTON" }</button>
-                    } else {}
                 </div>
                 <KeyboardComp />
             </div>
