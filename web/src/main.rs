@@ -70,6 +70,8 @@ enum ModelMsg {
     MakeGuess(String),
     ToggleDarkMode,
     AddToCurrentGuess(char),
+    SendEnter,
+    SendBackspace,
 }
 
 impl Component for Model {
@@ -84,7 +86,7 @@ impl Component for Model {
         }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Self::Message::MakeGuess(guess) => {
                 match self.game.make_guess(&guess) {
@@ -102,10 +104,39 @@ impl Component for Model {
             }
             Self::Message::AddToCurrentGuess(letter) => {
                 match self.current_guess.as_mut() {
-                    Some(letters) => letters.push(letter),
+                    Some(letters) => {
+                        if letters.len() < 5 {
+                            letters.push(letter)
+                        }
+                    }
                     None => self.current_guess = Some(vec![letter]),
                 };
                 true
+            }
+            Self::Message::SendEnter => {
+                if let Some(chars) = &self.current_guess {
+                    if chars.len() == 5 {
+                        let guess: String = chars.iter().collect();
+                        self.current_guess = None;
+                        return self.update(ctx, Self::Message::MakeGuess(guess));
+                    } else {
+                        false
+                    }
+                } else {
+                    false
+                }
+            }
+            Self::Message::SendBackspace => {
+                if let Some(chars) = &mut self.current_guess {
+                    if chars.len() > 0 {
+                        chars.pop();
+                        true
+                    } else {
+                        false
+                    }
+                } else {
+                    false
+                }
             }
         }
     }
