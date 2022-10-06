@@ -235,11 +235,26 @@ header {
 	border-bottom: 1px solid var(--color-tone-4);
 
 	div.wordle-title {
+		display: flex;
+		flex-direction: row;
+		align-items: baseline;
+		justify-content: flex-start;
+		flex-wrap: nowrap;
+
 		font-size: 3rem;
-		text-align: center;
+		text-align: left;
 		flex-grow: 2;
 		font-weight: bold;
-		font-family: serif;
+
+		div.main-title {
+			font-family: Georgia, serif;
+		}
+
+		div.subtitle {
+			margin-left: 15px;
+			font-size: 0.8rem;
+			font-style: italic;
+		}
 	}
 
 	button.dark-mode-button {

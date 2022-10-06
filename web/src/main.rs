@@ -182,7 +182,10 @@ impl Component for Model {
         html! {
             <>
             <header>
-                <div class="wordle-title">{ "Wordle" }</div>
+                <div class="wordle-title">
+                    <div class="main-title">{ "Wordle" }</div>
+                    <div class="subtitle">{ "by Dyson" }</div>
+                </div>
                 <div>
                     <button class="dark-mode-button" onclick={link.callback(|_| ModelMsg::ToggleDarkMode)}>
                         {button_icon}
