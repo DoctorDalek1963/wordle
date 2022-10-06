@@ -1,6 +1,8 @@
 use super::{Model, ModelMsg};
+use std::collections::HashMap;
 use web_sys::MouseEvent;
-use yew::{html, html::Scope, Component, Context, Html, Properties};
+use wordle::letters::Position;
+use yew::{classes, html, html::Scope, Component, Context, Html, Properties};
 
 fn get_parent<PARENT: Component, COMP: Component>(ctx: &Context<COMP>) -> Scope<PARENT> {
     ctx.link().get_parent().unwrap().clone().downcast()
@@ -11,6 +13,7 @@ struct KeyComp {}
 #[derive(Clone, PartialEq, Properties)]
 struct KeyProps {
     letter: char,
+    position: Option<Position>,
 }
 
 impl Component for KeyComp {
@@ -22,8 +25,21 @@ impl Component for KeyComp {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
+        fn position_to_class(position: Option<Position>) -> &'static str {
+            match position {
+                None => "",
+                Some(position) => match position {
+                    Position::NotInWord => "notinword",
+                    Position::WrongPosition => "wrongposition",
+                    Position::Correct => "correct",
+                },
+            }
+        }
+
         let parent: Scope<KeyboardComp> = get_parent(ctx);
         let letter = ctx.props().letter;
+        let position = ctx.props().position;
+
         let onclick = parent.callback(move |event: MouseEvent| {
             if event.detail() == 0 {
                 KeyboardMsg::DoNothing
@@ -33,7 +49,7 @@ impl Component for KeyComp {
         });
 
         html! {
-            <button class="keyboard-key" {onclick}>{ ctx.props().letter }</button>
+            <button class={classes!("keyboard-key", position_to_class(position))} {onclick}>{ ctx.props().letter }</button>
         }
     }
 }
@@ -83,7 +99,9 @@ impl Component for BackspaceKeyComp {
 pub struct KeyboardComp {}
 
 #[derive(Clone, PartialEq, Properties)]
-pub struct KeyboardProps {}
+pub struct KeyboardProps {
+    pub map: HashMap<char, Option<Position>>,
+}
 
 pub enum KeyboardMsg {
     DoNothing,
@@ -113,43 +131,53 @@ impl Component for KeyboardComp {
         true
     }
 
-    fn view(&self, _ctx: &Context<Self>) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let get_key = |letter: char| -> Html {
+            let position = *ctx.props().map.get(&letter).unwrap_or_else(|| {
+                panic!("We should have a position value for character {:?}", letter)
+            });
+
+            html! {
+                <KeyComp {letter} {position} />
+            }
+        };
+
         html! {
             <div class="keyboard">
                 <div class="keyboard-row">
-                    <KeyComp letter={'q'} />
-                    <KeyComp letter={'w'} />
-                    <KeyComp letter={'e'} />
-                    <KeyComp letter={'r'} />
-                    <KeyComp letter={'t'} />
-                    <KeyComp letter={'y'} />
-                    <KeyComp letter={'u'} />
-                    <KeyComp letter={'i'} />
-                    <KeyComp letter={'o'} />
-                    <KeyComp letter={'p'} />
+                    {get_key('Q')}
+                    {get_key('W')}
+                    {get_key('E')}
+                    {get_key('R')}
+                    {get_key('T')}
+                    {get_key('Y')}
+                    {get_key('U')}
+                    {get_key('I')}
+                    {get_key('O')}
+                    {get_key('P')}
                 </div>
                 <div class="keyboard-row">
                     <div class="keyboard-spacer" />
-                    <KeyComp letter={'a'} />
-                    <KeyComp letter={'s'} />
-                    <KeyComp letter={'d'} />
-                    <KeyComp letter={'f'} />
-                    <KeyComp letter={'g'} />
-                    <KeyComp letter={'h'} />
-                    <KeyComp letter={'j'} />
-                    <KeyComp letter={'k'} />
-                    <KeyComp letter={'l'} />
+                    {get_key('A')}
+                    {get_key('S')}
+                    {get_key('D')}
+                    {get_key('F')}
+                    {get_key('G')}
+                    {get_key('H')}
+                    {get_key('J')}
+                    {get_key('K')}
+                    {get_key('L')}
                     <div class="keyboard-spacer" />
                 </div>
                 <div class="keyboard-row">
                     <EnterKeyComp />
-                    <KeyComp letter={'z'} />
-                    <KeyComp letter={'x'} />
-                    <KeyComp letter={'c'} />
-                    <KeyComp letter={'v'} />
-                    <KeyComp letter={'b'} />
-                    <KeyComp letter={'n'} />
-                    <KeyComp letter={'m'} />
+                    {get_key('Z')}
+                    {get_key('X')}
+                    {get_key('C')}
+                    {get_key('V')}
+                    {get_key('B')}
+                    {get_key('N')}
+                    {get_key('M')}
                     <BackspaceKeyComp />
                 </div>
             </div>

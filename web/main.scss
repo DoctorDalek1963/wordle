@@ -202,6 +202,22 @@ div.game {
 					flex: 1.5;
 					font-size: 12px;
 				}
+
+				&.notinword, &.wrongposition, &.correct {
+					color: var(--key-evaluated-text-color);
+				}
+
+				&.notinword {
+					background-color: var(--key-bg-notinword);
+				}
+
+				&.wrongposition {
+					background-color: var(--key-bg-wrongposition);
+				}
+
+				&.correct {
+					background-color: var(--key-bg-correct);
+				}
 			}
 		}
 	}

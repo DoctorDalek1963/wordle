@@ -193,7 +193,7 @@ impl Component for Model {
                 <div class="board-container">
                     <BoardComp game={self.game.clone()} guesses={self.guesses.clone()} current_guess={self.current_guess.clone()} />
                 </div>
-                <KeyboardComp />
+                <KeyboardComp map={self.game.keyboard.clone()} />
             </div>
             </>
         }
