@@ -1,23 +1,38 @@
+//! This module handles the concept of letters and their associated positions.
+
 #[cfg(doc)]
 use super::Game;
 
+/// A letter with an associated [`Position`] in the word.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Letter {
+    /// The actual character that this Letter wraps.
     pub letter: char,
+
+    /// The position of this letter in the word.
     pub position: Position,
 }
 
+/// A position in the word.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Position {
+    /// The letter doesn't appear in the word at all, or all the instances of that letter have
+    /// already been placed in the word.
     NotInWord,
+
+    /// The letter appears in the word, but not in this position.
     WrongPosition,
+
+    /// The letter appears in the word in this position.
+    ///
+    /// It may also appear elsewhere in the word.
     Correct,
 }
 
 impl Letter {
-    /// Create a new [`Letter`] struct.
+    /// Create a new letter with the given associated position.
     ///
-    /// This constructor will automatically convert the letter to uppercase.
+    /// This constructor will automatically convert the letter character to uppercase.
     pub fn new(letter: char, position: Position) -> Self {
         Self {
             letter: letter.to_ascii_uppercase(),

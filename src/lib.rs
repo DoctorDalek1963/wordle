@@ -1,3 +1,8 @@
+//! # Wordle
+//!
+//! A library to handle the backend details of standard Wordle games.
+//! See [the New York Times' Wordle](https://www.nytimes.com/games/wordle/index.html).
+
 pub mod letters;
 pub mod valid_words;
 
@@ -6,25 +11,32 @@ use rand::seq::SliceRandom;
 use std::{cmp::Ordering, collections::HashMap};
 use thiserror::Error;
 
+/// An enum representing possible errors resulting from an invalid guess.
 #[derive(Debug, Error, PartialEq)]
 pub enum GuessError {
-    #[error("Guess must be exactly 5 letters")]
-    WrongWordLength,
-
+    /// The guess must be exclusively ASCII characters.
+    ///
+    /// This is just because the word list is exclusively ASCII characters.
     #[error("Guess must be exclusively ASCII characters")]
     IncludesNonAscii,
 
+    /// The guess must be in the [`VALID_WORDS`](valid_words::VALID_WORDS) list.
     #[error("Guess must be a valid word")]
     InvalidWord,
+
+    /// The guess must be exactly 5 letters.
+    #[error("Guess must be exactly 5 letters")]
+    WrongWordLength,
 }
 
+/// A game of Wordle.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Game {
-    /// The target word to guess.
+    /// The target word that the user needs to guess.
     pub word: String,
 
-    /// This keyboard hashmap must contain all uppercase Latin letters, and maps them to the best
-    /// position they've seen in a previous guess.
+    /// This hashmap contains all uppercase Latin letters, and maps them to the best
+    /// position that they've been seen in previously.
     ///
     /// If they have not been guessed previously, this is [`None`], otherwise
     /// [`NotInWord`](Position::NotInWord) is the lowest position, then
@@ -33,10 +45,10 @@ pub struct Game {
 }
 
 impl Game {
-    /// Create a game by choosing a random word from [`GOOD_WORDS`](valid_words::GOOD_WORDS).
+    /// Create a game by choosing a random target word from [`GOOD_WORDS`](valid_words::GOOD_WORDS).
     ///
     /// This constructor also ensures that the [`keyboard`](Game::keyboard) contains all uppercase
-    /// Latin letters.
+    /// Latin letters, and initially maps them all to [`None`].
     pub fn new() -> Self {
         Self {
             word: {
@@ -55,10 +67,9 @@ impl Game {
         }
     }
 
-    /// Check if the guess is valid.
+    /// Check if the guess is valid, returning `Ok(())` if it is.
     ///
-    /// A guess is only valid if it is a five letter word in [`VALID_WORDS`](valid_words::VALID_WORDS).
-    /// That means it must be exclusively ASCII, have a length of 5 characters, and be in the list.
+    /// A guess is only valid if it is exclusively ASCII, 5 characters long, and be in the list.
     ///
     /// A guess does not have to be uppercase to be valid. It is made uppercase automatically.
     ///
@@ -79,7 +90,7 @@ impl Game {
         Ok(())
     }
 
-    /// Guess the given word against the secret word.
+    /// Guess the given word against the target word.
     ///
     /// This method returns an array of five [`Letter`](letters::Letter)s. Each Letter has a [`Position`](letters::Position).
     /// As per classic Wordle rules, the positions are calculated as follows:
@@ -89,7 +100,9 @@ impl Game {
     ///
     /// If a letter is in the word but not in the correct position, then:
     /// If there are more occurences of that letter in the target word, it is in the [`WrongPosition`](letters::Position::WrongPosition).
-    /// If all the occurences of that letter have been placed correctly, it is [`NotInWord`](letters::Position::NotInWord).
+    /// If all the occurences of that letter have been placed correctly, or already accounted for
+    /// by [`WrongPosition`](letters::Position::WrongPosition) letters, then it is
+    /// [`NotInWord`](letters::Position::NotInWord).
     ///
     /// # Errors
     ///
@@ -135,7 +148,7 @@ impl Game {
         let instances_in_word_map = instances_in_word_map;
 
         // This maps each character in the alphabet to a tuple. The first element is the number of
-        // correctly places letters in the guess, and the second number is how many times that
+        // correctly placed letters in the guess, and the second number is how many times that
         // letter still needs to be placed in the guess
         let mut correct_letters_map: HashMap<char, (usize, usize)> = HashMap::new();
         for c in valid_words::ALPHABET {
@@ -220,10 +233,18 @@ impl Game {
 }
 
 mod ordered_position {
+    //! This module is an implementation detail to allow the [`Game::update_keyboard`] method to
+    //! correctly order the `Option<Position>` types.
+
     use super::*;
 
     /// This struct is a thin wrapper around `Option<Position>` and allows a strict ordering of
     /// this type.
+    ///
+    /// All variants are equal to themselves. `None` is less than everything else, then
+    /// [`NotInWord`](letters::Position::NotInWord), then
+    /// [`WrongPosition`](letters::Position::WrongPosition), and finally
+    /// [`Correct`](letters::Position::Correct) is greater than everything else.
     #[derive(Debug, Eq, PartialEq)]
     pub struct OrderedPosition(pub Option<Position>);
 
