@@ -141,10 +141,9 @@ impl Game {
         for c in valid_words::ALPHABET {
             let correct_letters = optional_letters
                 .iter()
-                .filter(|l| {
-                    l.1.is_some()
-                        && l.1.as_ref().unwrap().letter == c
-                        && l.1.as_ref().unwrap().position == Position::Correct
+                .filter(|l| match l.1 {
+                    None => false,
+                    Some(ll) => ll.letter == c && ll.position == Position::Correct,
                 })
                 .count();
             correct_letters_map.insert(c, (correct_letters, instances_in_word_map.get(&c).expect("`instances_in_word_map` should contain all letters in the Latin alphabet ({c:?})") - correct_letters));
