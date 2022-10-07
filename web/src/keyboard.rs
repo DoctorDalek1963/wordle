@@ -42,9 +42,9 @@ impl Component for KeyComp {
 
         let onclick = parent.callback(move |event: MouseEvent| {
             if event.detail() == 0 {
-                KeyboardMsg::DoNothing
+                ModelMsg::DoNothing
             } else {
-                KeyboardMsg::AddToCurrentGuess(letter)
+                ModelMsg::AddToCurrentGuess(letter)
             }
         });
 
@@ -66,7 +66,7 @@ impl Component for EnterKeyComp {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let parent: Scope<KeyboardComp> = get_parent(ctx);
-        let onclick = parent.callback(move |_| KeyboardMsg::SendEnter);
+        let onclick = parent.callback(move |_| ModelMsg::SendEnter);
         html! {
             <button class="keyboard-key special-key" {onclick}>{ "ENTER" }</button>
         }
@@ -85,7 +85,7 @@ impl Component for BackspaceKeyComp {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let parent: Scope<KeyboardComp> = get_parent(ctx);
-        let onclick = parent.callback(move |_| KeyboardMsg::SendBackspace);
+        let onclick = parent.callback(move |_| ModelMsg::SendBackspace);
         html! {
             <button class="keyboard-key special-key" {onclick}>
                 <svg viewBox="0 0 24 24" height="24" width="24">
@@ -103,15 +103,8 @@ pub struct KeyboardProps {
     pub map: HashMap<char, Option<Position>>,
 }
 
-pub enum KeyboardMsg {
-    DoNothing,
-    AddToCurrentGuess(char),
-    SendEnter,
-    SendBackspace,
-}
-
 impl Component for KeyboardComp {
-    type Message = KeyboardMsg;
+    type Message = ModelMsg;
     type Properties = KeyboardProps;
 
     fn create(_ctx: &Context<Self>) -> Self {
@@ -120,15 +113,8 @@ impl Component for KeyboardComp {
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         let parent: Scope<Model> = get_parent(ctx);
-        parent
-            .callback(move |_| match msg {
-                Self::Message::DoNothing => ModelMsg::DoNothing,
-                Self::Message::AddToCurrentGuess(letter) => ModelMsg::AddToCurrentGuess(letter),
-                Self::Message::SendEnter => ModelMsg::SendEnter,
-                Self::Message::SendBackspace => ModelMsg::SendBackspace,
-            })
-            .emit(());
-        true
+        parent.callback(move |_| msg.clone()).emit(());
+        false
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {

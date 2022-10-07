@@ -66,7 +66,8 @@ struct Model {
     current_guess: Option<Vec<char>>,
 }
 
-enum ModelMsg {
+#[derive(Clone)]
+pub enum ModelMsg {
     DoNothing,
     MakeGuess(String),
     ToggleDarkMode,
