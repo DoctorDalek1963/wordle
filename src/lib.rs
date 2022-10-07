@@ -63,16 +63,16 @@ impl Game {
     ///
     /// # Errors
     ///
-    /// If a guess is invalid, we return the appropriate [`GuessError`] variant.
-    pub fn is_valid_guess(guess: &str) -> Result<(), (GuessError, String)> {
+    /// If a guess is invalid, then we return the appropriate [`GuessError`] variant.
+    pub fn is_valid_guess(guess: &str) -> Result<(), GuessError> {
         let guess = guess.to_ascii_uppercase();
 
         if !guess.is_ascii() {
-            return Err((GuessError::IncludesNonAscii, guess));
+            return Err(GuessError::IncludesNonAscii);
         } else if guess.len() != 5 {
-            return Err((GuessError::WrongWordLength, guess));
+            return Err(GuessError::WrongWordLength);
         } else if !valid_words::VALID_WORDS.contains(&&guess[..]) {
-            return Err((GuessError::InvalidWord, guess));
+            return Err(GuessError::InvalidWord);
         }
 
         Ok(())
@@ -94,7 +94,7 @@ impl Game {
     ///
     /// If the guess is invalid, we return the appropriate [`GuessError`] variant. See
     /// [`is_valid_guess`](Game::is_valid_guess).
-    pub fn make_guess(&mut self, guess: &str) -> Result<[Letter; 5], (GuessError, String)> {
+    pub fn make_guess(&mut self, guess: &str) -> Result<[Letter; 5], GuessError> {
         Self::is_valid_guess(guess)?;
 
         let guess = guess.to_ascii_uppercase();
@@ -282,35 +282,23 @@ mod tests {
         let mut game = Game::new();
 
         for guess in ["spurg", "HYiiA", "olleh"] {
-            assert_eq!(
-                game.make_guess(guess),
-                Err((GuessError::InvalidWord, guess.to_ascii_uppercase()))
-            );
-            assert_eq!(
-                Game::is_valid_guess(guess),
-                Err((GuessError::InvalidWord, guess.to_ascii_uppercase()))
-            );
+            assert_eq!(game.make_guess(guess), Err(GuessError::InvalidWord));
+            assert_eq!(Game::is_valid_guess(guess), Err(GuessError::InvalidWord));
         }
 
         for guess in ["Öster", "Złoty", "Schrödinger"] {
-            assert_eq!(
-                game.make_guess(guess),
-                Err((GuessError::IncludesNonAscii, guess.to_ascii_uppercase()))
-            );
+            assert_eq!(game.make_guess(guess), Err(GuessError::IncludesNonAscii));
             assert_eq!(
                 Game::is_valid_guess(guess),
-                Err((GuessError::IncludesNonAscii, guess.to_ascii_uppercase()))
+                Err(GuessError::IncludesNonAscii)
             );
         }
 
         for guess in ["", "hi", "this should fail"] {
-            assert_eq!(
-                game.make_guess(guess),
-                Err((GuessError::WrongWordLength, guess.to_ascii_uppercase()))
-            );
+            assert_eq!(game.make_guess(guess), Err(GuessError::WrongWordLength));
             assert_eq!(
                 Game::is_valid_guess(guess),
-                Err((GuessError::WrongWordLength, guess.to_ascii_uppercase()))
+                Err(GuessError::WrongWordLength)
             );
         }
     }

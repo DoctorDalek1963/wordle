@@ -147,7 +147,7 @@ fn main() {
         let valid = Game::is_valid_guess(input);
         match valid {
             Ok(()) => Ok(Validation::Valid),
-            Err((error, _)) => Ok(Validation::Invalid(error.into())),
+            Err(error) => Ok(Validation::Invalid(error.into())),
         }
     };
 
