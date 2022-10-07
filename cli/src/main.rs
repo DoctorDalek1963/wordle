@@ -10,8 +10,6 @@ use wordle::{
     Game,
 };
 
-const TOTAL_GUESSES: u8 = 6;
-
 /// Return a string with the given letter and the appropriate colour for its position type.
 ///
 /// The colours are based on the original Wordle game, and implemented using Termion.
@@ -96,20 +94,11 @@ fn print_keyboard(keyboard: &HashMap<char, Option<Position>>) {
     println!("{}", style::Reset);
 }
 
-/// Clear the terminal.
-///
-/// This CLI binary is only designed for Linux terminals, so we use ANSI codes.
-fn clear_terminal() {
-    print!("{}[2J", 27 as char);
-}
-
 fn create_render_config(guesses: u8) -> RenderConfig {
     use inquire::ui::Color;
 
     // This section is needed because RenderConfig.prompt_prefix needs to be
     // Styled<&'static str>, so the string needs to be a literal
-
-    // NOTE: If we ever change the TOTAL_GUESSES, then this section also needs to change
 
     let prompt_prefix = Styled::new(match guesses {
         6 => "(1/6) >",
@@ -151,7 +140,7 @@ fn main() {
         }
     };
 
-    let mut remaining_guesses: u8 = TOTAL_GUESSES;
+    let mut remaining_guesses: u8 = 6;
     let mut past_guesses: Vec<[Letter; 5]> = Vec::new();
 
     println!("Welcome to Wordle!\n");
@@ -175,7 +164,7 @@ fn main() {
 
             past_guesses.push(letters);
 
-            clear_terminal();
+            print!("{}", termion::clear::All);
 
             for guess in &past_guesses {
                 print_guess(guess);
