@@ -38,12 +38,13 @@ impl Game {
     /// This constructor also ensures that the [`keyboard`](Game::keyboard) contains all uppercase
     /// Latin letters.
     pub fn new() -> Self {
-        let word = *valid_words::GOOD_WORDS
-            .choose(&mut rand::thread_rng())
-            .expect("valid_words::GOOD_WORDS should never be empty");
-
         Self {
-            word: word.to_string().to_ascii_uppercase(),
+            word: {
+                let word = *valid_words::GOOD_WORDS
+                    .choose(&mut rand::thread_rng())
+                    .expect("valid_words::GOOD_WORDS should never be empty");
+                word.to_string().to_ascii_uppercase()
+            },
             keyboard: {
                 let mut map = HashMap::new();
                 for c in valid_words::ALPHABET {
