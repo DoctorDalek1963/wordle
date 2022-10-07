@@ -1,3 +1,7 @@
+//! This crate is a simple CLI interface to [`wordle`] using
+//! [`inquire`](https://docs.rs/inquire/0.3.0/inquire/) and
+//! [`termion`](https://docs.rs/termion/1.5.6/termion/).
+
 use inquire::{
     ui::{RenderConfig, Styled},
     validator::Validation,
@@ -94,6 +98,10 @@ fn print_keyboard(keyboard: &HashMap<char, Option<Position>>) {
     println!("{}", style::Reset);
 }
 
+/// Create a render config for `inquire`.
+///
+/// `inquire`'s render config needs a `&'static str` as the prompt string, which is why we need a
+/// separate function to generate it.
 fn create_render_config(guesses: u8) -> RenderConfig {
     use inquire::ui::Color;
 
@@ -129,6 +137,10 @@ fn create_render_config(guesses: u8) -> RenderConfig {
     config
 }
 
+/// Run the main game loop.
+///
+/// This loop consists of prompting the user for a guess, making that guess against the [`Game`],
+/// and responding accordingly.
 fn main() {
     let mut game = Game::new();
 
