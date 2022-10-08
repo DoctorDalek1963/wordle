@@ -1,32 +1,51 @@
-use wordle::{
-    letters::{Letter, Position},
-    Game,
-};
+//! This module handles components for the game board itself - the 6 rows of 5 letter words.
+
+use wordle::letters::{Letter, Position};
 use yew::{classes, html, Component, Context, Html, Properties};
 
+/// A component for a single letter in a row.
 struct LetterComp {}
 
+/// An enum to represent the state of a [`LetterComp`].
+///
+/// This is needed because each letter on the board can be blank, a [`Letter`] with a position, or
+/// part of a guess currently being typed.
 #[derive(Clone, PartialEq)]
-enum LetterPropConcreteOrGuess {
+enum LetterPropState {
+    /// This letter is part of a previous guess, so it has an associated position.
     Concrete(Letter),
-    Guess(char),
+
+    /// This letter is part of a guess currently being typed, so it's just a character.
+    CurrentGuess(char),
+
+    /// This `LetterComp` is empty.
     Empty,
 }
 
+/// The props for [`LetterComp`].
 #[derive(Clone, PartialEq, Properties)]
 struct LetterProps {
+    /// The delay used for the animation of revealing the letters.
     delay: u32,
-    letter: LetterPropConcreteOrGuess,
+
+    /// The state and contents of the component.
+    letter: LetterPropState,
 }
 
 impl Component for LetterComp {
+    /// This component accepts no messages.
     type Message = ();
+
     type Properties = LetterProps;
 
+    /// Create an empty struct.
     fn create(_ctx: &Context<Self>) -> Self {
         Self {}
     }
 
+    /// Return the HTML for this letter component, based on its props.
+    ///
+    /// See [`LetterPropState`] for possible states.
     fn view(&self, ctx: &Context<Self>) -> Html {
         fn position_to_class(letter: Letter) -> &'static str {
             match letter.position {
@@ -37,15 +56,15 @@ impl Component for LetterComp {
         }
 
         match ctx.props().letter {
-            LetterPropConcreteOrGuess::Empty => html! {
+            LetterPropState::Empty => html! {
                 <div class="letter empty" />
             },
-            LetterPropConcreteOrGuess::Concrete(letter) => html! {
+            LetterPropState::Concrete(letter) => html! {
                 <div class={classes!("letter", position_to_class(letter))} style={format!("animation-delay: {}ms;", ctx.props().delay)}>
                     {letter.letter}
                 </div>
             },
-            LetterPropConcreteOrGuess::Guess(letter) => html! {
+            LetterPropState::CurrentGuess(letter) => html! {
                 <div class="letter guess">
                     {letter}
                 </div>
@@ -54,43 +73,58 @@ impl Component for LetterComp {
     }
 }
 
+/// A component for a single row in the board, with 5 letters.
 struct RowComp {}
 
+/// An enum to represent the state of a [`RowComp`].
+///
+/// A row can either have a previously guessed word, which be 5 [`Letter`]s, or it can be an
+/// in-progress guess, which will be up to 5 characters, or it can be completely empty.
+#[derive(Clone, PartialEq)]
+enum RowPropState {
+    /// This row contains a previously guessed word.
+    Concrete([Letter; 5]),
+
+    /// This row contains an in-progress guess.
+    ///
+    /// There should only be one row in the board that has this state.
+    CurrentGuess(Vec<char>),
+
+    /// This row is empty.
+    Empty,
+}
+
+/// The props for [`RowComp`].
 #[derive(Clone, PartialEq, Properties)]
 struct RowProps {
-    letters: Option<[Letter; 5]>,
-    current_guess: Option<Vec<char>>,
+    /// The state of the row.
+    state: RowPropState,
 }
 
 impl Component for RowComp {
+    /// This component accepts no messages.
     type Message = ();
+
     type Properties = RowProps;
 
+    /// Create an empty struct.
     fn create(_ctx: &Context<Self>) -> Self {
         Self {}
     }
 
+    /// Return the HTML of the row, based on its state.
+    ///
+    /// See [`RowPropState`] for possible states.
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let get_letter = |index: usize| -> LetterPropConcreteOrGuess {
+        let get_letter = |index: usize| -> LetterPropState {
             let props = ctx.props();
-            if props.letters.is_some() && props.current_guess.is_some() {
-                unreachable!(
-                    concat!(
-                        "We should never have a row with a fixed guess and a current guess\n",
-                        "  letters = {:?}\n",
-                        "  current_guess = {:?}"
-                    ),
-                    props.letters, props.current_guess
-                );
-            } else if let Some(letters) = props.letters {
-                LetterPropConcreteOrGuess::Concrete(letters[index])
-            } else if let Some(guess) = &props.current_guess {
-                match guess.get(index) {
-                    Some(c) => LetterPropConcreteOrGuess::Guess(*c),
-                    None => LetterPropConcreteOrGuess::Empty,
-                }
-            } else {
-                LetterPropConcreteOrGuess::Empty
+            match &props.state {
+                RowPropState::Concrete(word) => LetterPropState::Concrete(word[index]),
+                RowPropState::CurrentGuess(guess) => match guess.get(index) {
+                    None => LetterPropState::Empty,
+                    Some(c) => LetterPropState::CurrentGuess(*c),
+                },
+                RowPropState::Empty => LetterPropState::Empty,
             }
         };
 
@@ -106,38 +140,52 @@ impl Component for RowComp {
     }
 }
 
+/// A component to represent the whole board with all 6 rows.
 pub struct BoardComp {}
 
+/// The props for [`BoardComp`].
 #[derive(Clone, PartialEq, Properties)]
 pub struct BoardProps {
-    pub game: Game,
+    /// A list of previous guesses as [`Letter`]s with associated positions
     pub guesses: Vec<[Letter; 5]>,
+
+    /// The guess which is currently being typed.
+    ///
+    /// This guess is managed by the [`Model`](super::Model) component, which acts as a bridge
+    /// between this board and the [`KeyboardComp`](super::keyboard::KeyboardComp).
     pub current_guess: Option<Vec<char>>,
 }
 
 impl Component for BoardComp {
+    /// This component accepts no messages.
     type Message = ();
+
     type Properties = BoardProps;
 
+    /// Create an empty struct.
     fn create(_ctx: &Context<Self>) -> Self {
         Self {}
     }
 
+    /// Return the HTML of the board, which is just 6 [`RowComp`]s wrapped in a div.
     fn view(&self, ctx: &Context<Self>) -> Html {
         let get_row = |index: usize| -> Html {
             let props = ctx.props();
 
             if let Some(letters) = props.guesses.get(index) {
                 html! {
-                    <RowComp letters={*letters} current_guess={None} />
+                    <RowComp state={RowPropState::Concrete(*letters)} />
                 }
             } else if index == props.guesses.len() {
+                let state = RowPropState::CurrentGuess(
+                    props.current_guess.clone().unwrap_or_else(Vec::new),
+                );
                 html! {
-                    <RowComp letters={None} current_guess={props.current_guess.clone()} />
+                    <RowComp {state} />
                 }
             } else {
                 html! {
-                    <RowComp letters={None} current_guess={None} />
+                    <RowComp state={RowPropState::Empty} />
                 }
             }
         };

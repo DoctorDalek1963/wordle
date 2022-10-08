@@ -1,29 +1,52 @@
+//! This module handles components for the keyboard display at the bottom of the screen.
+
 use super::{Model, ModelMsg};
 use std::collections::HashMap;
 use web_sys::MouseEvent;
 use wordle::letters::Position;
 use yew::{classes, html, html::Scope, Component, Context, Html, Properties};
 
+/// Get the parent scope from the given component context.
+///
+/// # Panics
+///
+/// If the given component doesn't have a parent, or if the parent cannot be downcast to the
+/// intended type.
 fn get_parent<PARENT: Component, COMP: Component>(ctx: &Context<COMP>) -> Scope<PARENT> {
     ctx.link().get_parent().unwrap().clone().downcast()
 }
 
+/// A component for a single, normal key on the keyboard.
 struct KeyComp {}
 
+/// The props for [`KeyComp`].
 #[derive(Clone, PartialEq, Properties)]
 struct KeyProps {
+    /// The letter of this key.
     letter: char,
+
+    /// The position to use when colouring this key.
+    ///
+    /// Colours are chosen by classic Wordle rules.
     position: Option<Position>,
 }
 
 impl Component for KeyComp {
+    /// This component accepts no messages.
     type Message = ();
+
     type Properties = KeyProps;
 
+    /// Create an empty struct.
     fn create(_ctx: &Context<Self>) -> Self {
         Self {}
     }
 
+    /// Return the HTML button for this key.
+    ///
+    /// The button will have an appropriate class for its position, and will have a callback to
+    /// send a message to the parent component ([`KeyboardComp`]) to add this letter when the
+    /// button is clicked.
     fn view(&self, ctx: &Context<Self>) -> Html {
         fn position_to_class(position: Option<Position>) -> &'static str {
             match position {
@@ -54,16 +77,25 @@ impl Component for KeyComp {
     }
 }
 
+/// A component for the enter key on the keyboard.
 struct EnterKeyComp {}
 
 impl Component for EnterKeyComp {
+    /// This component accepts no messages.
     type Message = ();
+
+    /// This component has no props.
     type Properties = ();
 
+    /// Create an empty struct.
     fn create(_ctx: &Context<Self>) -> Self {
         Self {}
     }
 
+    /// Return the HTML button for this key.
+    ///
+    /// The button has an appropriate class and a callback to send [`ModelMsg::SendEnter`] to
+    /// the parent component ([`KeyboardComp`]) when it's clicked.
     fn view(&self, ctx: &Context<Self>) -> Html {
         let parent: Scope<KeyboardComp> = get_parent(ctx);
         let onclick = parent.callback(move |_| ModelMsg::SendEnter);
@@ -73,16 +105,25 @@ impl Component for EnterKeyComp {
     }
 }
 
+/// A component for the backspace key on the keyboard.
 struct BackspaceKeyComp {}
 
 impl Component for BackspaceKeyComp {
+    /// This component accepts no messages.
     type Message = ();
+
+    /// This component has no props.
     type Properties = ();
 
+    /// Create an empty struct.
     fn create(_ctx: &Context<Self>) -> Self {
         Self {}
     }
 
+    /// Return the HTML button for this key.
+    ///
+    /// The button has an appropriate class and a callback to send [`ModelMsg::SendBackspace`] to
+    /// the parent component ([`KeyboardComp`]) when it's clicked.
     fn view(&self, ctx: &Context<Self>) -> Html {
         let parent: Scope<KeyboardComp> = get_parent(ctx);
         let onclick = parent.callback(move |_| ModelMsg::SendBackspace);
@@ -96,27 +137,42 @@ impl Component for BackspaceKeyComp {
     }
 }
 
+/// A component to represent the whole virtual keyboard.
 pub struct KeyboardComp {}
 
+/// The props for [`KeyboardComp`].
 #[derive(Clone, PartialEq, Properties)]
 pub struct KeyboardProps {
+    /// Map each letter on the keyboard to an optional position so that we can colour it properly.
     pub map: HashMap<char, Option<Position>>,
 }
 
 impl Component for KeyboardComp {
+    /// This component only passes messages up to its parent, and that parent will only ever be
+    /// [`Model`], so we can just use that message.
     type Message = ModelMsg;
+
     type Properties = KeyboardProps;
 
+    /// Create an empty struct.
     fn create(_ctx: &Context<Self>) -> Self {
         Self {}
     }
 
+    /// Pass the given message up to the parent component ([`Model`](super::Model)).
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         let parent: Scope<Model> = get_parent(ctx);
         parent.callback(move |_| msg.clone()).emit(());
         false
     }
 
+    /// Return the HTML div for the keyboard.
+    ///
+    /// The keyboard is QWERTY and has enter in the bottom left and backspace in the bottom right,
+    /// just like classic Wordle.
+    ///
+    /// This component uses [`KeyComp`], [`EnterKeyComp`], and [`BackspaceKeyComp`] to build the
+    /// keyboard in HTML div elements.
     fn view(&self, ctx: &Context<Self>) -> Html {
         let get_key = |letter: char| -> Html {
             let position = *ctx.props().map.get(&letter).unwrap_or_else(|| {

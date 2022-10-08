@@ -1,8 +1,5 @@
 //! This module handles the concept of letters and their associated positions.
 
-#[cfg(doc)]
-use super::Game;
-
 /// A letter with an associated [`Position`] in the word.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Letter {
@@ -48,7 +45,7 @@ impl Letter {
     /// know enough context to figure it out.
     ///
     /// The context we need is the target word and the rest of the guess, and the logic for working
-    /// it out is in [`make_guess`](Game::make_guess).
+    /// it out is in [`Game::make_guess`](super::Game::make_guess).
     pub fn simple_check_letter_pair(
         letter: &char,
         expected_letter: &char,

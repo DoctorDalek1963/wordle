@@ -1,3 +1,5 @@
+//! This crate is a simple web interface to [`wordle`] using [`yew`](https://docs.rs/yew/0.19.3/yew/).
+
 use crate::{board::BoardComp, keyboard::KeyboardComp};
 use web_sys::KeyboardEvent;
 use wordle::{letters::Letter, valid_words::ALPHABET, Game};
@@ -6,6 +8,7 @@ use yew::{html, Component, Context, Html};
 mod board;
 mod keyboard;
 
+/// Get the value of the `wordleDarkMode` key in `localStorage`.
 fn storage_get_dark_mode() -> Option<bool> {
     let storage = web_sys::window()?.local_storage().unwrap_or(None)?;
     match storage.get_item("wordleDarkMode") {
@@ -25,6 +28,7 @@ fn storage_get_dark_mode() -> Option<bool> {
     }
 }
 
+/// Set the value of the `wordleDarkMode` key in `localStorage`.
 fn storage_set_dark_mode(dark_mode: bool) -> Option<()> {
     let storage = web_sys::window()?.local_storage().unwrap_or(None)?;
     match storage.set_item("wordleDarkMode", &dark_mode.to_string()) {
@@ -33,6 +37,7 @@ fn storage_set_dark_mode(dark_mode: bool) -> Option<()> {
     }
 }
 
+/// Set dark mode on the body of the HTML by adding or removing the "dark" class.
 fn set_dark_mode(dark_mode: bool) -> Option<()> {
     let class_list = web_sys::window()?.document()?.body()?.class_list();
 
@@ -60,26 +65,55 @@ fn set_dark_mode(dark_mode: bool) -> Option<()> {
     Some(())
 }
 
+/// The root component of the app.
 struct Model {
+    /// The Wordle game itself.
     game: Game,
+
+    /// A list of previously guessed words.
     guesses: Vec<[Letter; 5]>,
+
+    /// The guess which is currently being typed.
     current_guess: Option<Vec<char>>,
 }
 
+/// An enum of messages that can be sent to the model.
 #[derive(Clone)]
 pub enum ModelMsg {
+    /// Do nothing.
+    ///
+    /// This message is needed because the keyboard listener triggers on every keypress, but we
+    /// want to ignore some of them. We also want to ignore when a key button on the
+    /// [`KeyboardComp`] is triggered by hitting enter when it's selected, rather than by a mouse click.
     DoNothing,
+
+    /// Make a guess with the given string. This will call [`Game::make_guess`].
     MakeGuess(String),
+
+    /// Toggle dark mode for the whole HTML body.
+    ///
+    /// See [`set_dark_mode`].
     ToggleDarkMode,
+
+    /// The given character to the current guess.
     AddToCurrentGuess(char),
+
+    /// This message represents the enter key being pressed, meaning the user wants to submit their
+    /// current guess.
     SendEnter,
+
+    /// This message represents the backspace key being pressed, meaning the user wants to delete
+    /// the last character they added to their guess.
     SendBackspace,
 }
 
 impl Component for Model {
     type Message = ModelMsg;
+
+    /// This component has no props.
     type Properties = ();
 
+    /// Create a simple, default struct for the component.
     fn create(_ctx: &Context<Self>) -> Self {
         Self {
             game: Game::new(),
@@ -88,6 +122,7 @@ impl Component for Model {
         }
     }
 
+    /// Update the model based on the given message. See [`ModelMsg`].
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Self::Message::DoNothing => false,
@@ -145,6 +180,10 @@ impl Component for Model {
         }
     }
 
+    /// Return the HTML of the whole model.
+    ///
+    /// This includes the header with dark mode button, the game board, and the virtual keyboard.
+    /// It also sets up a keyboard listener to allow the user to type.
     fn view(&self, ctx: &Context<Self>) -> Html {
         let dark_mode = storage_get_dark_mode().unwrap_or(false);
         set_dark_mode(dark_mode);
@@ -195,7 +234,7 @@ impl Component for Model {
             </header>
             <div {onkeydown} class="game">
                 <div class="board-container">
-                    <BoardComp game={self.game.clone()} guesses={self.guesses.clone()} current_guess={self.current_guess.clone()} />
+                    <BoardComp guesses={self.guesses.clone()} current_guess={self.current_guess.clone()} />
                 </div>
                 <KeyboardComp map={self.game.keyboard.clone()} />
             </div>
@@ -204,6 +243,7 @@ impl Component for Model {
     }
 }
 
+/// Run the [`yew`](https://docs.rs/yew/0.19.3/yew/) app.
 fn main() {
     yew::start_app::<Model>();
 }
