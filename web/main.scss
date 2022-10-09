@@ -150,6 +150,9 @@ div.game {
 						background-color: var(--color-tone-7);
 						border: 2px solid var(--color-tone-3);
 						color: var(--color-tone-1);
+
+						animation-name: pop-in;
+						animation-duration: 100ms;
 					}
 
 					&.notinword {
@@ -162,6 +165,17 @@ div.game {
 
 					&.correct {
 						background-color: var(--color-correct);
+					}
+
+					@keyframes pop-in {
+						from {
+							transform: scale(0.8);
+							opacity: 0;
+						}
+						40% {
+							transform: scale(1.1);
+							opacity: 1;
+						}
 					}
 				}
 			}
