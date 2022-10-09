@@ -1,6 +1,8 @@
 //! This crate is a simple web interface to [`wordle`] using [`yew`](https://docs.rs/yew/0.19.3/yew/).
 
 use crate::{board::BoardComp, keyboard::KeyboardComp};
+use gloo_events::EventListener;
+use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use web_sys::KeyboardEvent;
 use wordle::{letters::Letter, valid_words::ALPHABET, Game};
 use yew::{html, Component, Context, Html};
@@ -75,6 +77,14 @@ struct Model {
 
     /// The guess which is currently being typed.
     current_guess: Option<Vec<char>>,
+
+    /// The event listener for keyboard events.
+    ///
+    /// We need to keep this in the struct to avoid it being dropped from the DOM and being
+    /// useless. It's an [`Option`] because we can't initialise it until we have the
+    /// [`Context`](https://docs.rs/yew/0.19.3/yew/prelude/struct.Context.html), which we do in
+    /// [`Model::rendered`].
+    kbd_listener: Option<EventListener>,
 }
 
 /// An enum of messages that can be sent to the model.
@@ -119,6 +129,7 @@ impl Component for Model {
             game: Game::new(),
             guesses: Vec::new(),
             current_guess: None,
+            kbd_listener: None,
         }
     }
 
@@ -207,9 +218,44 @@ impl Component for Model {
             }
         };
 
-        let link = ctx.link();
+        html! {
+            <>
+            <header>
+                <div class="wordle-title">
+                    <div class="main-title">{ "Wordle" }</div>
+                    <div class="subtitle">{ "by Dyson" }</div>
+                </div>
+                <div>
+                    <button class="dark-mode-button" onclick={ctx.link().callback(|_| ModelMsg::ToggleDarkMode)}>
+                        {button_icon}
+                    </button>
+                </div>
+            </header>
+            <div class="game">
+                <div class="board-container">
+                    <BoardComp guesses={self.guesses.clone()} current_guess={self.current_guess.clone()} />
+                </div>
+                <KeyboardComp map={self.game.keyboard.clone()} />
+            </div>
+            </>
+        }
+    }
 
-        let onkeydown = link.callback(|event: KeyboardEvent| {
+    /// This function is run after the HTML is generated, but just before the component is run.
+    ///
+    /// If this is the first time we're rendering the model, then we set up an
+    /// [`EventListener`](https://docs.rs/web-sys/0.3.60/web_sys/struct.EventListener.html)
+    /// on the document to listen for
+    /// [`KeyboardEvent`](https://docs.rs/web-sys/0.3.60/web_sys/struct.KeyboardEvent.html)s
+    /// and update the model accordingly when the user types on their keyboard.
+    ///
+    /// See [`Model::kbd_listener`].
+    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
+        if !first_render {
+            return;
+        }
+
+        let callback = ctx.link().callback(|event: KeyboardEvent| {
             let key = event.key().to_ascii_lowercase();
             if key.len() == 1
                 && ALPHABET.contains(&key.to_ascii_uppercase().chars().next().unwrap())
@@ -224,27 +270,14 @@ impl Component for Model {
             }
         });
 
-        html! {
-            <>
-            <header>
-                <div class="wordle-title">
-                    <div class="main-title">{ "Wordle" }</div>
-                    <div class="subtitle">{ "by Dyson" }</div>
-                </div>
-                <div>
-                    <button class="dark-mode-button" onclick={link.callback(|_| ModelMsg::ToggleDarkMode)}>
-                        {button_icon}
-                    </button>
-                </div>
-            </header>
-            <div {onkeydown} class="game">
-                <div class="board-container">
-                    <BoardComp guesses={self.guesses.clone()} current_guess={self.current_guess.clone()} />
-                </div>
-                <KeyboardComp map={self.game.keyboard.clone()} />
-            </div>
-            </>
-        }
+        let document = web_sys::window().unwrap().document().unwrap();
+
+        let listener = EventListener::new(&document, "keydown", move |event| {
+            let event = event.dyn_ref::<KeyboardEvent>().unwrap_throw();
+            callback.emit(event.clone());
+        });
+
+        self.kbd_listener.replace(listener);
     }
 }
 
