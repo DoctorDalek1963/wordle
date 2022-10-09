@@ -1,4 +1,4 @@
-//! This crate is a simple CLI interface to [`wordle`] using
+//! This crate is a simple CLI interface to [`wordle`](::wordle) using
 //! [`inquire`](https://docs.rs/inquire/0.3.0/inquire/) and
 //! [`termion`](https://docs.rs/termion/1.5.6/termion/).
 

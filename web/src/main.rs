@@ -1,4 +1,5 @@
-//! This crate is a simple web interface to [`wordle`] using [`yew`](https://docs.rs/yew/0.19.3/yew/).
+//! This crate is a simple web interface to [`wordle`](::wordle) using
+//! [`yew`](https://docs.rs/yew/0.19.3/yew/).
 
 use crate::{board::BoardComp, keyboard::KeyboardComp};
 use gloo_events::EventListener;
