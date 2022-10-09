@@ -131,10 +131,10 @@ impl Component for RowComp {
         html! {
             <div class="row">
                 <LetterComp letter={get_letter(0)} delay=0 />
-                <LetterComp letter={get_letter(1)} delay=100 />
-                <LetterComp letter={get_letter(2)} delay=200 />
-                <LetterComp letter={get_letter(3)} delay=300 />
-                <LetterComp letter={get_letter(4)} delay=400 />
+                <LetterComp letter={get_letter(1)} delay=250 />
+                <LetterComp letter={get_letter(2)} delay=500 />
+                <LetterComp letter={get_letter(3)} delay=750 />
+                <LetterComp letter={get_letter(4)} delay=1000 />
             </div>
         }
     }

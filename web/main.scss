@@ -7,6 +7,63 @@ $keyboard-height: 200px;
 	align-items: center;
 }
 
+@mixin letter-guess-style {
+	background-color: var(--color-tone-7);
+	border: 2px solid var(--color-tone-3);
+	color: var(--color-tone-1);
+}
+
+@mixin letter-flip-keyframes($color) {
+	0% {
+		transform: rotateX(0);
+		@include letter-guess-style;
+	}
+	50% {
+		transform: rotateX(-90deg);
+		@include letter-guess-style;
+	}
+	51% {
+		border: none;
+		color: var(--letter-text-color);
+	}
+	100% {
+		transform: rotateX(0);
+		background-color: var($color);
+		border: none;
+		color: var(--letter-text-color);
+	}
+}
+
+@mixin animate-letter-flip($anim) {
+	animation: forwards;
+	animation-name: $anim;
+	animation-duration: 500ms;
+	animation-timing-function: ease-in;
+}
+
+@keyframes letter-pop-in {
+	from {
+		transform: scale(0.8);
+		opacity: 0;
+	}
+	40% {
+		transform: scale(1.1);
+		opacity: 1;
+	}
+}
+
+@keyframes letter-flip-notinword {
+	@include letter-flip-keyframes(--color-notinword);
+}
+
+@keyframes letter-flip-wrongposition {
+	@include letter-flip-keyframes(--color-wrongposition);
+}
+
+@keyframes letter-flip-correct {
+	@include letter-flip-keyframes(--color-correct);
+}
+
 :root {
 	font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
 
@@ -147,35 +204,25 @@ div.game {
 					}
 
 					&.guess {
-						background-color: var(--color-tone-7);
-						border: 2px solid var(--color-tone-3);
-						color: var(--color-tone-1);
+						@include letter-guess-style;
 
-						animation-name: pop-in;
+						animation-name: letter-pop-in;
 						animation-duration: 100ms;
 					}
 
 					&.notinword {
-						background-color: var(--color-notinword);
+						@include letter-guess-style;
+						@include animate-letter-flip(letter-flip-notinword);
 					}
 
 					&.wrongposition {
-						background-color: var(--color-wrongposition);
+						@include letter-guess-style;
+						@include animate-letter-flip(letter-flip-wrongposition);
 					}
 
 					&.correct {
-						background-color: var(--color-correct);
-					}
-
-					@keyframes pop-in {
-						from {
-							transform: scale(0.8);
-							opacity: 0;
-						}
-						40% {
-							transform: scale(1.1);
-							opacity: 1;
-						}
+						@include letter-guess-style;
+						@include animate-letter-flip(letter-flip-correct);
 					}
 				}
 			}
