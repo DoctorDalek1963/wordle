@@ -124,6 +124,8 @@ impl Component for Model {
 
     /// Update the model based on the given message. See [`ModelMsg`].
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+        use wordle::GuessError;
+
         match msg {
             Self::Message::DoNothing => false,
             Self::Message::MakeGuess(guess) => {
@@ -132,7 +134,11 @@ impl Component for Model {
                         self.guesses.push(letters);
                         self.current_guess = None;
                     }
-                    Err(_) => unimplemented!(),
+                    Err(e) => match e {
+                        GuessError::WrongWordLength => unreachable!("The player should only be able to submit a guess with 5 letters, not {}", guess.len()),
+                        GuessError::IncludesNonAscii => unreachable!("The guess should never be able to contain non-ASCII characters (guess = {guess:?})"),
+                        GuessError::InvalidWord => ()
+                    }
                 };
                 true
             }
@@ -156,8 +162,7 @@ impl Component for Model {
                 if let Some(chars) = &self.current_guess {
                     if chars.len() == 5 {
                         let guess: String = chars.iter().collect();
-                        self.current_guess = None;
-                        self.update(ctx, Self::Message::MakeGuess(guess))
+                        self.update(ctx, Self::Message::MakeGuess(guess.to_uppercase()))
                     } else {
                         false
                     }
