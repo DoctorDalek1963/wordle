@@ -3,7 +3,7 @@
 use crate::{board::BoardComp, keyboard::KeyboardComp};
 use gloo_events::EventListener;
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
-use web_sys::KeyboardEvent;
+use web_sys::{KeyboardEvent, MouseEvent};
 use wordle::{letters::Letter, valid_words::ALPHABET, Game};
 use yew::{html, Component, Context, Html};
 
@@ -218,6 +218,14 @@ impl Component for Model {
             }
         };
 
+        let onclick = ctx.link().callback(|event: MouseEvent| {
+            if event.detail() == 0 {
+                ModelMsg::DoNothing
+            } else {
+                ModelMsg::ToggleDarkMode
+            }
+        });
+
         html! {
             <>
             <header>
@@ -226,7 +234,7 @@ impl Component for Model {
                     <div class="subtitle">{ "by Dyson" }</div>
                 </div>
                 <div>
-                    <button class="dark-mode-button" onclick={ctx.link().callback(|_| ModelMsg::ToggleDarkMode)}>
+                    <button class="dark-mode-button" {onclick}>
                         {button_icon}
                     </button>
                 </div>
