@@ -3,6 +3,7 @@
 
 use crate::{board::BoardComp, keyboard::KeyboardComp};
 use gloo_events::EventListener;
+use gloo_utils::{body, document, window};
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use web_sys::{KeyboardEvent, MouseEvent};
 use wordle::{letters::Letter, valid_words::ALPHABET, Game};
@@ -13,7 +14,7 @@ mod keyboard;
 
 /// Get the value of the `wordleDarkMode` key in `localStorage`.
 fn storage_get_dark_mode() -> Option<bool> {
-    let storage = web_sys::window()?.local_storage().unwrap_or(None)?;
+    let storage = window().local_storage().unwrap_or(None)?;
     match storage.get_item("wordleDarkMode") {
         Err(_) => None,
         Ok(opt_str) => match opt_str {
@@ -33,7 +34,7 @@ fn storage_get_dark_mode() -> Option<bool> {
 
 /// Set the value of the `wordleDarkMode` key in `localStorage`.
 fn storage_set_dark_mode(dark_mode: bool) -> Option<()> {
-    let storage = web_sys::window()?.local_storage().unwrap_or(None)?;
+    let storage = window().local_storage().unwrap_or(None)?;
     match storage.set_item("wordleDarkMode", &dark_mode.to_string()) {
         Err(_) => None,
         Ok(_) => Some(()),
@@ -42,7 +43,7 @@ fn storage_set_dark_mode(dark_mode: bool) -> Option<()> {
 
 /// Set dark mode on the body of the HTML by adding or removing the "dark" class.
 fn set_dark_mode(dark_mode: bool) -> Option<()> {
-    let class_list = web_sys::window()?.document()?.body()?.class_list();
+    let class_list = body().class_list();
 
     let a: &str;
     let b: &str;
@@ -279,7 +280,7 @@ impl Component for Model {
             }
         });
 
-        let document = web_sys::window().unwrap().document().unwrap();
+        let document = document();
 
         let listener = EventListener::new(&document, "keydown", move |event| {
             let event = event.dyn_ref::<KeyboardEvent>().unwrap_throw();

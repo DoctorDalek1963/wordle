@@ -1,7 +1,31 @@
 //! This module handles components for the game board itself - the 6 rows of 5 letter words.
 
+use gloo_utils::window;
 use wordle::letters::{Letter, Position};
 use yew::{classes, html, Component, Context, Html, Properties};
+
+/// Get the inner size of the window, returned as `Option<(width, height)>`.
+fn get_window_size() -> Option<(i32, i32)> {
+    let width = match window().inner_width() {
+        Ok(val) => val.as_f64()? as i32,
+        Err(_) => return None,
+    };
+    let height = match window().inner_height() {
+        Ok(val) => val.as_f64()? as i32,
+        Err(_) => return None,
+    };
+
+    Some((width, height))
+}
+
+#[doc(hidden)]
+fn min(a: i32, b: i32) -> i32 {
+    use std::cmp::Ordering;
+    match a.cmp(&b) {
+        Ordering::Less => a,
+        _ => b,
+    }
+}
 
 /// A component for a single letter in a row.
 struct LetterComp {}
@@ -190,8 +214,17 @@ impl Component for BoardComp {
             }
         };
 
+        let style = if let Some((width, height)) = get_window_size() {
+            let height = min(height - 260, 420);
+            let width = min(width, 5 * height / 6);
+            let height = min(height, 6 * width / 5);
+            format!("width: {width}px; height: {height}px;")
+        } else {
+            String::new()
+        };
+
         html! {
-            <div class="board">
+            <div {style} class="board">
                 {get_row(0)}
                 {get_row(1)}
                 {get_row(2)}
