@@ -4,6 +4,7 @@
 use crate::{board::BoardComp, keyboard::KeyboardComp};
 use gloo_events::EventListener;
 use gloo_utils::{body, document, window};
+use std::cell::RefCell;
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use web_sys::{KeyboardEvent, MouseEvent};
 use wordle::{letters::Letter, valid_words::ALPHABET, Game};
@@ -87,6 +88,11 @@ struct Model {
     /// [`Context`](https://docs.rs/yew/0.19.3/yew/prelude/struct.Context.html), which we do in
     /// [`Model::rendered`].
     kbd_listener: Option<EventListener>,
+
+    /// Whether the user has just submitted a bad guess - meaning the guess row should shake.
+    ///
+    /// The bool is wrapped in a [`RefCell`] to allow it to be mutated in [`view()`](Model::view).
+    bad_guess: RefCell<bool>,
 }
 
 /// An enum of messages that can be sent to the model.
@@ -98,6 +104,11 @@ pub enum ModelMsg {
     /// want to ignore some of them. We also want to ignore when a key button on the
     /// [`KeyboardComp`] is triggered by hitting enter when it's selected, rather than by a mouse click.
     DoNothing,
+
+    /// Force update.
+    ///
+    /// This should only be used internally.
+    ForceUpdate,
 
     /// Make a guess with the given string. This will call [`Game::make_guess`].
     MakeGuess(String),
@@ -132,6 +143,7 @@ impl Component for Model {
             guesses: Vec::new(),
             current_guess: None,
             kbd_listener: None,
+            bad_guess: RefCell::new(false),
         }
     }
 
@@ -141,6 +153,7 @@ impl Component for Model {
 
         match msg {
             Self::Message::DoNothing => false,
+            Self::Message::ForceUpdate => true,
             Self::Message::MakeGuess(guess) => {
                 match self.game.make_guess(&guess) {
                     Ok(letters) => {
@@ -150,7 +163,9 @@ impl Component for Model {
                     Err(e) => match e {
                         GuessError::WrongWordLength => unreachable!("The player should only be able to submit a guess with 5 letters, not {}", guess.len()),
                         GuessError::IncludesNonAscii => unreachable!("The guess should never be able to contain non-ASCII characters (guess = {guess:?})"),
-                        GuessError::InvalidWord => ()
+                        GuessError::InvalidWord => {
+                            self.bad_guess.replace(true);
+                        }
                     }
                 };
                 true
@@ -177,10 +192,12 @@ impl Component for Model {
                         let guess: String = chars.iter().collect();
                         self.update(ctx, Self::Message::MakeGuess(guess.to_uppercase()))
                     } else {
-                        false
+                        self.bad_guess.replace(true);
+                        true
                     }
                 } else {
-                    false
+                    self.bad_guess.replace(true);
+                    true
                 }
             }
             Self::Message::SendBackspace => {
@@ -228,6 +245,12 @@ impl Component for Model {
             }
         });
 
+        let bad_guess = self.bad_guess.replace(false);
+        // FIXME: Asynchronously wait 600ms, then send ForceUpdate
+        //if bad_guess {
+        //ctx.link().send_message(ModelMsg::ForceUpdate);
+        //};
+
         html! {
             <>
             <header>
@@ -243,7 +266,7 @@ impl Component for Model {
             </header>
             <div class="game">
                 <div class="board-container">
-                    <BoardComp guesses={self.guesses.clone()} current_guess={self.current_guess.clone()} />
+                    <BoardComp guesses={self.guesses.clone()} current_guess={self.current_guess.clone()} {bad_guess} />
                 </div>
                 <KeyboardComp map={self.game.keyboard.clone()} />
             </div>

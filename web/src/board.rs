@@ -1,6 +1,7 @@
 //! This module handles components for the game board itself - the 6 rows of 5 letter words.
 
 use gloo_utils::window;
+use js_sys::{Function, Promise};
 use wordle::letters::{Letter, Position};
 use yew::{classes, html, Component, Context, Html, Properties};
 
@@ -123,6 +124,9 @@ enum RowPropState {
 struct RowProps {
     /// The state of the row.
     state: RowPropState,
+
+    /// Whether or not this row should shake.
+    should_shake: bool,
 }
 
 impl Component for RowComp {
@@ -152,14 +156,38 @@ impl Component for RowComp {
             }
         };
 
-        html! {
-            <div class="row">
+        let contents = html! {
+            <>
                 <LetterComp letter={get_letter(0)} delay=0 />
                 <LetterComp letter={get_letter(1)} delay=250 />
                 <LetterComp letter={get_letter(2)} delay=500 />
                 <LetterComp letter={get_letter(3)} delay=750 />
                 <LetterComp letter={get_letter(4)} delay=1000 />
-            </div>
+            </>
+        };
+
+        if ctx.props().should_shake {
+            // This is a JS Promise that waits for 600ms and then removes the ID of the shaking row
+            let _ = Promise::new(&mut |_: Function, _: Function| {
+                let _ = window().set_timeout_with_callback_and_timeout_and_arguments_0(
+                    &Function::new_no_args(
+                        "document.getElementsByClassName('row-shake')[0].classList.remove('row-shake');"
+                    ),
+                    600,
+                );
+            });
+
+            html! {
+                <div class={classes!("row", "row-shake")}>
+                    {contents}
+                </div>
+            }
+        } else {
+            html! {
+                <div class="row">
+                    {contents}
+                </div>
+            }
         }
     }
 }
@@ -178,6 +206,11 @@ pub struct BoardProps {
     /// This guess is managed by the [`Model`](super::Model) component, which acts as a bridge
     /// between this board and the [`KeyboardComp`](super::keyboard::KeyboardComp).
     pub current_guess: Option<Vec<char>>,
+
+    /// Whether the user has hit enter on a bad guess.
+    ///
+    /// This prop is used to make the row shake.
+    pub bad_guess: bool,
 }
 
 impl Component for BoardComp {
@@ -198,18 +231,20 @@ impl Component for BoardComp {
 
             if let Some(letters) = props.guesses.get(index) {
                 html! {
-                    <RowComp state={RowPropState::Concrete(*letters)} />
+                    <RowComp state={RowPropState::Concrete(*letters)} should_shake={false} />
                 }
             } else if index == props.guesses.len() {
+                let should_shake = props.bad_guess;
                 let state = RowPropState::CurrentGuess(
                     props.current_guess.clone().unwrap_or_else(Vec::new),
                 );
+
                 html! {
-                    <RowComp {state} />
+                    <RowComp {state} {should_shake} />
                 }
             } else {
                 html! {
-                    <RowComp state={RowPropState::Empty} />
+                    <RowComp state={RowPropState::Empty} should_shake={false} />
                 }
             }
         };

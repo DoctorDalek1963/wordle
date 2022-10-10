@@ -64,6 +64,21 @@ $keyboard-height: 200px;
 	@include letter-flip-keyframes(--color-correct);
 }
 
+@keyframes row-shake-anim {
+	10%, 90% {
+		transform: translateX(-1px);
+	}
+	20%, 80% {
+		transform: translateX(2px);
+	}
+	30%, 50%, 70% {
+		transform: translateX(-4px);
+	}
+	40%, 60% {
+		transform: translateX(4px);
+	}
+}
+
 :root {
 	font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
 
@@ -220,6 +235,11 @@ div.game {
 						@include letter-guess-style;
 						@include animate-letter-flip(letter-flip-correct);
 					}
+				}
+
+				&.row-shake {
+					animation-name: row-shake-anim;
+					animation-duration: 600ms;
 				}
 			}
 		}
