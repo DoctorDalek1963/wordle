@@ -122,6 +122,11 @@ pub enum ModelMsg {
     /// This should only be used internally.
     ForceUpdate,
 
+    /// Show the correct guess.
+    ///
+    /// This is a message to allow a delay between the user failing, and us showing the correct word.
+    ShowCorrectGuess,
+
     /// Make a guess with the given string. This will call [`Game::make_guess`].
     MakeGuess(String),
 
@@ -168,6 +173,10 @@ impl Component for Model {
         match msg {
             Self::Message::DoNothing => false,
             Self::Message::ForceUpdate => true,
+            Self::Message::ShowCorrectGuess => {
+                self.show_correct_guess = true;
+                true
+            }
             Self::Message::MakeGuess(guess) => {
                 match self.game.make_guess(&guess) {
                     Ok(letters) => {
@@ -176,7 +185,8 @@ impl Component for Model {
                         if letters.iter().map(|l| l.position).collect::<Vec<_>>() == vec![Position::Correct; 5] {
                             self.guessed_correct = true;
                         } else if self.guesses.len() >= 6 {
-                            self.show_correct_guess = true;
+                            let link = ctx.link().clone();
+                            Timeout::new(2000, move || link.send_message(ModelMsg::ShowCorrectGuess)).forget();
                         }
                     }
                     Err(e) => match e {
