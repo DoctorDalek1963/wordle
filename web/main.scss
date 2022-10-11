@@ -79,6 +79,15 @@ $keyboard-height: 200px;
 	}
 }
 
+@keyframes rainbow-anim {
+	0%, 100% {
+		background-position: 0 0;
+	}
+	50% {
+		background-position: 100% 0;
+	}
+}
+
 :root {
 	font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
 
@@ -296,6 +305,41 @@ div.game {
 					background-color: var(--key-bg-correct);
 				}
 			}
+		}
+	}
+
+	div.correct-guess-popup-container {
+		z-index: 1000;
+
+		position: absolute;
+		top: 35%;
+		left: 50%;
+		transform: translate(-50%, 0);
+		pointer-events: none;
+		width: fit-content;
+
+		border: none;
+		border-radius: 6px;
+		opacity: 0.9;
+
+		background-color: var(--color-tone-8);
+
+		div.correct-guess-popup {
+			position: relative;
+			margin: 14px;
+			padding: 16px;
+
+			font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+			font-weight: 700;
+			font-size: 50px;
+			line-height: 55px;
+
+			background: linear-gradient(to right, #6666ff, #0099ff , #00ff00, #ff3399, #6666ff);
+			background-clip: text;
+			background-size: 400% 100%;
+			color: transparent;
+
+			animation: rainbow-anim 4s ease-in-out infinite;
 		}
 	}
 }

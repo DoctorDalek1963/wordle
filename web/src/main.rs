@@ -1,7 +1,11 @@
 //! This crate is a simple web interface to [`wordle`](::wordle) using
 //! [`yew`](https://docs.rs/yew/0.19.3/yew/).
 
-use crate::{board::BoardComp, keyboard::KeyboardComp};
+mod board;
+mod keyboard;
+mod misc;
+
+use crate::{board::BoardComp, keyboard::KeyboardComp, misc::ShowCorrectGuess};
 use gloo_events::EventListener;
 use gloo_timers::callback::Timeout;
 use gloo_utils::{body, document, window};
@@ -14,9 +18,6 @@ use wordle::{
     Game,
 };
 use yew::{html, Component, Context, Html};
-
-mod board;
-mod keyboard;
 
 /// Get the value of the `wordleDarkMode` key in `localStorage`.
 fn storage_get_dark_mode() -> Option<bool> {
@@ -86,8 +87,11 @@ struct Model {
     /// The guess which is currently being typed.
     current_guess: Option<Vec<char>>,
 
-    /// Whether the current game has been finished.
-    finished: bool,
+    /// Whether the game has been correctly guessed.
+    guessed_correct: bool,
+
+    /// Whether we should show the correct guess.
+    show_correct_guess: bool,
 
     /// The event listener for keyboard events.
     ///
@@ -150,7 +154,8 @@ impl Component for Model {
             game: Game::new(),
             guesses: Vec::new(),
             current_guess: None,
-            finished: false,
+            guessed_correct: false,
+            show_correct_guess: false,
             kbd_listener: None,
             bad_guess: RefCell::new(false),
         }
@@ -169,7 +174,9 @@ impl Component for Model {
                         self.guesses.push(letters);
                         self.current_guess = None;
                         if letters.iter().map(|l| l.position).collect::<Vec<_>>() == vec![Position::Correct; 5] {
-                            self.finished = true;
+                            self.guessed_correct = true;
+                        } else if self.guesses.len() >= 6 {
+                            self.show_correct_guess = true;
                         }
                     }
                     Err(e) => match e {
@@ -188,7 +195,7 @@ impl Component for Model {
                 true
             }
             Self::Message::AddToCurrentGuess(letter) => {
-                if self.finished {
+                if self.guessed_correct {
                     return false;
                 }
 
@@ -261,7 +268,7 @@ impl Component for Model {
             }
         });
 
-        let bad_guess = self.bad_guess.replace(false) && !self.finished;
+        let bad_guess = self.bad_guess.replace(false) && !self.guessed_correct;
 
         if bad_guess {
             let link = ctx.link().clone();
@@ -286,6 +293,9 @@ impl Component for Model {
                     <BoardComp guesses={self.guesses.clone()} current_guess={self.current_guess.clone()} {bad_guess} />
                 </div>
                 <KeyboardComp map={self.game.keyboard.clone()} />
+                if self.show_correct_guess {
+                    <ShowCorrectGuess word={self.game.word.clone()} />
+                }
             </div>
             </>
         }
