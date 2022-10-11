@@ -171,7 +171,7 @@ impl Component for RowComp {
             let _ = Promise::new(&mut |_: Function, _: Function| {
                 let _ = window().set_timeout_with_callback_and_timeout_and_arguments_0(
                     &Function::new_no_args(
-                        "document.getElementsByClassName('row-shake')[0].classList.remove('row-shake');"
+                        "let x = document.getElementsByClassName('row-shake'); if (x[0] !== undefined) {x[0].classList.remove('row-shake');}"
                     ),
                     600,
                 );

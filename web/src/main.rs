@@ -3,6 +3,7 @@
 
 use crate::{board::BoardComp, keyboard::KeyboardComp};
 use gloo_events::EventListener;
+use gloo_timers::callback::Timeout;
 use gloo_utils::{body, document, window};
 use std::cell::RefCell;
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
@@ -246,10 +247,11 @@ impl Component for Model {
         });
 
         let bad_guess = self.bad_guess.replace(false);
-        // FIXME: Asynchronously wait 600ms, then send ForceUpdate
-        //if bad_guess {
-        //ctx.link().send_message(ModelMsg::ForceUpdate);
-        //};
+
+        if bad_guess {
+            let link = ctx.link().clone();
+            Timeout::new(600, move || link.send_message(ModelMsg::ForceUpdate)).forget();
+        };
 
         html! {
             <>
