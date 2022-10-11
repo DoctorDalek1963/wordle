@@ -8,7 +8,11 @@ use gloo_utils::{body, document, window};
 use std::cell::RefCell;
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use web_sys::{KeyboardEvent, MouseEvent};
-use wordle::{letters::Letter, valid_words::ALPHABET, Game};
+use wordle::{
+    letters::{Letter, Position},
+    valid_words::ALPHABET,
+    Game,
+};
 use yew::{html, Component, Context, Html};
 
 mod board;
@@ -82,6 +86,9 @@ struct Model {
     /// The guess which is currently being typed.
     current_guess: Option<Vec<char>>,
 
+    /// Whether the current game has been finished.
+    finished: bool,
+
     /// The event listener for keyboard events.
     ///
     /// We need to keep this in the struct to avoid it being dropped from the DOM and being
@@ -143,6 +150,7 @@ impl Component for Model {
             game: Game::new(),
             guesses: Vec::new(),
             current_guess: None,
+            finished: false,
             kbd_listener: None,
             bad_guess: RefCell::new(false),
         }
@@ -160,6 +168,9 @@ impl Component for Model {
                     Ok(letters) => {
                         self.guesses.push(letters);
                         self.current_guess = None;
+                        if letters.iter().map(|l| l.position).collect::<Vec<_>>() == vec![Position::Correct; 5] {
+                            self.finished = true;
+                        }
                     }
                     Err(e) => match e {
                         GuessError::WrongWordLength => unreachable!("The player should only be able to submit a guess with 5 letters, not {}", guess.len()),
@@ -177,6 +188,10 @@ impl Component for Model {
                 true
             }
             Self::Message::AddToCurrentGuess(letter) => {
+                if self.finished {
+                    return false;
+                }
+
                 match self.current_guess.as_mut() {
                     Some(letters) => {
                         if letters.len() < 5 {
@@ -246,7 +261,7 @@ impl Component for Model {
             }
         });
 
-        let bad_guess = self.bad_guess.replace(false);
+        let bad_guess = self.bad_guess.replace(false) && !self.finished;
 
         if bad_guess {
             let link = ctx.link().clone();
