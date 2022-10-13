@@ -1,19 +1,22 @@
 #!/usr/bin/env sh
 
+# Install dependencies:
+# sudo npm i -g -D postcss postcss-cli
+# sudo npm i -g autoprefixer sass
+
 mkdir -p /data/www/wordle
 
 # Web app
 cd web
-rm -f Trunk.toml
-touch Trunk.toml
+git restore Trunk.toml
 
-echo '[build]'                    > Trunk.toml
+echo '\n[build]'                 >> Trunk.toml
 echo 'dist = "/data/www/wordle"' >> Trunk.toml
 echo 'public_url = "/wordle/"'   >> Trunk.toml
 echo 'release = true'            >> Trunk.toml
 
 trunk build
-rm Trunk.toml
+git restore Trunk.toml
 
 # Docs
 cd ..
