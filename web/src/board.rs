@@ -138,6 +138,13 @@ fn row_comp(props: &RowProps) -> Html {
         </>
     };
 
+    let correct_guess = match props.state {
+        RowPropState::Concrete(word) => {
+            word.iter().map(|l| l.position).collect::<Vec<_>>() == vec![Position::Correct; 5]
+        }
+        _ => false,
+    };
+
     if props.should_shake {
         // This is a JS Promise that waits for 600ms and then removes the ID of the shaking row
         let _ = Promise::new(&mut |_: Function, _: Function| {
@@ -151,6 +158,21 @@ fn row_comp(props: &RowProps) -> Html {
 
         html! {
             <div class={classes!("row", "row-shake")}>
+                {contents}
+            </div>
+        }
+    } else if correct_guess {
+        let _ = Promise::new(&mut |_: Function, _: Function| {
+            let _ = window().set_timeout_with_callback_and_timeout_and_arguments_0(
+                &Function::new_no_args(
+                    "document.getElementById('correct-row').classList.add('row-correct-bounce');",
+                ),
+                1800,
+            );
+        });
+
+        html! {
+            <div class="row" id="correct-row">
                 {contents}
             </div>
         }

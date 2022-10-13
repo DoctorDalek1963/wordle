@@ -79,6 +79,27 @@ $keyboard-height: 200px;
 	}
 }
 
+@keyframes row-correct-bounce-anim {
+	0%, 20% {
+		transform: translateY(0);
+	}
+	40% {
+		transform: translateY(-30px);
+	}
+	50% {
+		transform: translateY(5px);
+	}
+	60% {
+		transform: translateY(-15px);
+	}
+	80% {
+		transform: translateY(2px);
+	}
+	100% {
+		transform: translateY(0);
+	}
+}
+
 @keyframes rainbow-anim {
 	0%, 100% {
 		background-position: 0 0;
@@ -249,6 +270,19 @@ div.game {
 				&.row-shake {
 					animation-name: row-shake-anim;
 					animation-duration: 600ms;
+				}
+
+				&.row-correct-bounce {
+					div.letter {
+						// We know that this letter will be correct if the row is bouncing
+						@include letter-guess-style;
+						background-color: var(--color-correct);
+						border: none;
+						color: var(--letter-text-color);
+
+						animation-name: row-correct-bounce-anim;
+						animation-duration: 1300ms;
+					}
 				}
 			}
 		}
