@@ -2,7 +2,7 @@
 
 use gloo_utils::window;
 use js_sys::{Function, Promise};
-use wordle::letters::{Letter, Position};
+use wordle::prelude::*;
 use yew::{classes, function_component, html, Html, Properties};
 
 /// Get the inner size of the window, returned as `Option<(width, height)>`.
@@ -91,7 +91,7 @@ fn letter_comp(props: &LetterProps) -> Html {
 #[derive(Clone, PartialEq)]
 enum RowPropState {
     /// This row contains a previously guessed word.
-    Concrete([Letter; 5]),
+    Concrete(Word),
 
     /// This row contains an in-progress guess.
     ///
@@ -188,8 +188,8 @@ fn row_comp(props: &RowProps) -> Html {
 /// The props for [`BoardComp`].
 #[derive(Clone, PartialEq, Properties)]
 pub struct BoardProps {
-    /// A list of previous guesses as [`Letter`]s with associated positions
-    pub guesses: Vec<[Letter; 5]>,
+    /// A list of previous guesses.
+    pub guesses: Vec<Word>,
 
     /// The guess which is currently being typed.
     ///

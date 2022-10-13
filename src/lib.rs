@@ -6,10 +6,20 @@
 pub mod letters;
 pub mod valid_words;
 
+pub mod prelude {
+    //! This module just re-exports some commonly used types.
+
+    pub use super::letters::{Letter, Position};
+    pub use super::{Game, GuessError, Word};
+}
+
 use letters::{Letter, Position};
 use rand::seq::SliceRandom;
 use std::{cmp::Ordering, collections::HashMap};
 use thiserror::Error;
+
+/// A word is just an array of 5 [`Letter`]s.
+pub type Word = [Letter; 5];
 
 /// An enum representing possible errors resulting from an invalid guess.
 #[derive(Debug, Error, PartialEq)]
@@ -108,7 +118,7 @@ impl Game {
     ///
     /// If the guess is invalid, we return the appropriate [`GuessError`] variant. See
     /// [`is_valid_guess`](Game::is_valid_guess).
-    pub fn make_guess(&mut self, guess: &str) -> Result<[Letter; 5], GuessError> {
+    pub fn make_guess(&mut self, guess: &str) -> Result<Word, GuessError> {
         Self::is_valid_guess(guess)?;
 
         let guess = guess.to_ascii_uppercase();
@@ -162,7 +172,7 @@ impl Game {
             correct_letters_map.insert(c, (correct_letters, instances_in_word_map.get(&c).expect("`instances_in_word_map` should contain all letters in the Latin alphabet ({c:?})") - correct_letters));
         }
 
-        let letters: [Letter; 5] = optional_letters.map(|(orig_char, opt_letter)|
+        let word: Word = optional_letters.map(|(orig_char, opt_letter)|
             opt_letter.map_or_else(|| {
                 // If we get here, then the letter is either in the wrong position, or all
                 // occurences of this letter have been placed correctly already
@@ -204,13 +214,13 @@ impl Game {
             }, |l| l)
         );
 
-        self.update_keyboard(&letters);
+        self.update_keyboard(&word);
 
-        Ok(letters)
+        Ok(word)
     }
 
     /// Update the game's keyboard according to the positions of the letters in the given guess.
-    fn update_keyboard(&mut self, letters: &[Letter; 5]) {
+    fn update_keyboard(&mut self, letters: &Word) {
         use ordered_position::OrderedPosition;
 
         for letter in letters {

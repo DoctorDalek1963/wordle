@@ -9,10 +9,7 @@ use inquire::{
 };
 use std::collections::HashMap;
 use termion::style;
-use wordle::{
-    letters::{Letter, Position},
-    Game,
-};
+use wordle::prelude::*;
 
 /// Return a string with the given letter and the appropriate colour for its position type.
 ///
@@ -54,7 +51,7 @@ fn pretty_print_letter_struct(letter: Letter) -> String {
 /// Print the player's guess word highlighted according to classic Wordle colours, indented by 7 spaces.
 ///
 /// The identation is to align with the printed keyboard. See [`print_keyboard`].
-fn print_guess(letters: &[Letter; 5]) {
+fn print_guess(letters: &Word) {
     print!("       {}", style::Bold);
     for letter in letters.map(pretty_print_letter_struct) {
         print!("{}", letter);
@@ -153,7 +150,7 @@ fn main() {
     };
 
     let mut remaining_guesses: u8 = 6;
-    let mut past_guesses: Vec<[Letter; 5]> = Vec::new();
+    let mut past_guesses: Vec<Word> = Vec::new();
 
     println!("Welcome to Wordle!\n");
 

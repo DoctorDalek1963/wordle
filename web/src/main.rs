@@ -12,11 +12,7 @@ use gloo_utils::{body, document, window};
 use std::cell::RefCell;
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use web_sys::{KeyboardEvent, MouseEvent};
-use wordle::{
-    letters::{Letter, Position},
-    valid_words::ALPHABET,
-    Game,
-};
+use wordle::{prelude::*, valid_words::ALPHABET};
 use yew::{html, Component, Context, Html};
 
 /// Get the value of the `wordleDarkMode` key in `localStorage`.
@@ -82,7 +78,7 @@ struct Model {
     game: Game,
 
     /// A list of previously guessed words.
-    guesses: Vec<[Letter; 5]>,
+    guesses: Vec<Word>,
 
     /// The guess which is currently being typed.
     current_guess: Option<Vec<char>>,
@@ -168,8 +164,6 @@ impl Component for Model {
 
     /// Update the model based on the given message. See [`ModelMsg`].
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        use wordle::GuessError;
-
         match msg {
             Self::Message::DoNothing => false,
             Self::Message::ForceUpdate => true,
