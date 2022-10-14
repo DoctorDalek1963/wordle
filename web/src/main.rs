@@ -207,7 +207,7 @@ impl Component for Model {
                     Err(e) => match e {
                         GuessError::WrongWordLength => unreachable!("The player should only be able to submit a guess with 5 letters, not {}", guess.len()),
                         GuessError::IncludesNonAscii => unreachable!("The guess should never be able to contain non-ASCII characters (guess = {guess:?})"),
-                        GuessError::InvalidWord => {
+                        GuessError::InvalidWord | GuessError::LettersNotInName => {
                             self.bad_guess.replace(true);
                         }
                     }
@@ -305,7 +305,7 @@ impl Component for Model {
             <header>
                 <div class="wordle-title">
                     <div class="main-title">{ "Wordle" }</div>
-                    <div class="subtitle">{ "by Dyson" }</div>
+                    <div class="subtitle">{ format!("{} edition", NAME) }</div>
                 </div>
                 <div>
                     <button class="dark-mode-button" {onclick}>

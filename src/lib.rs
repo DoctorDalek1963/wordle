@@ -10,6 +10,7 @@ pub mod prelude {
     //! This module just re-exports some commonly used types.
 
     pub use super::letters::{Letter, Position};
+    pub use super::NAME;
     pub use super::{Game, GuessError, Word};
 }
 
@@ -17,6 +18,9 @@ use letters::{Letter, Position};
 use rand::seq::SliceRandom;
 use std::{cmp::Ordering, collections::HashMap};
 use thiserror::Error;
+
+/// The name to use for this special edition.
+pub const NAME: &str = env!("WORDLE_NAME");
 
 /// A word is just an array of 5 [`Letter`]s.
 pub type Word = [Letter; 5];
@@ -37,6 +41,10 @@ pub enum GuessError {
     /// The guess must be exactly 5 letters.
     #[error("Guess must be exactly 5 letters")]
     WrongWordLength,
+
+    /// The guess must contain at least one letter in the [`NAME`].
+    #[error("Guess must contain at least one of the letters in {}", NAME)]
+    LettersNotInName,
 }
 
 /// A game of Wordle.
@@ -61,13 +69,19 @@ impl Game {
     /// Latin letters, and initially maps them all to [`None`]. See
     /// [`new_keyboard_map`](Game::new_keyboard_map).
     pub fn new() -> Self {
+        let get_word = || {
+            *valid_words::GOOD_WORDS
+                .choose(&mut rand::thread_rng())
+                .expect("valid_words::GOOD_WORDS should never be empty")
+        };
+
+        let mut word = get_word();
+        while let Err(GuessError::LettersNotInName) = Self::is_valid_guess(word) {
+            word = get_word();
+        }
+
         Self {
-            word: {
-                let word = *valid_words::GOOD_WORDS
-                    .choose(&mut rand::thread_rng())
-                    .expect("valid_words::GOOD_WORDS should never be empty");
-                word.to_string().to_ascii_uppercase()
-            },
+            word: word.to_string().to_ascii_uppercase(),
             keyboard: Self::new_keyboard_map(),
         }
     }
@@ -99,6 +113,13 @@ impl Game {
             return Err(GuessError::WrongWordLength);
         } else if !valid_words::VALID_WORDS.contains(&&guess[..]) {
             return Err(GuessError::InvalidWord);
+        } else if guess
+            .chars()
+            .filter(|c| NAME.to_uppercase().contains(*c))
+            .count()
+            == 0
+        {
+            return Err(GuessError::LettersNotInName);
         }
 
         Ok(())
