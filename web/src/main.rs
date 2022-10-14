@@ -9,7 +9,7 @@ use crate::{board::BoardComp, keyboard::KeyboardComp, misc::ShowCorrectGuess};
 use gloo_events::EventListener;
 use gloo_timers::callback::Timeout;
 use gloo_utils::{body, document, window};
-use std::cell::RefCell;
+use std::{cell::RefCell, collections::HashMap};
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use web_sys::{KeyboardEvent, MouseEvent};
 use wordle::{prelude::*, valid_words::ALPHABET};
@@ -77,6 +77,12 @@ struct Model {
     /// The Wordle game itself.
     game: Game,
 
+    /// The keyboard map. See [`Game::keyboard`].
+    ///
+    /// This needs to be a separate member attribute so that the virtual keyboard can be colored
+    /// after a delay, rather than immediately after the guess.
+    map: HashMap<char, Option<Position>>,
+
     /// A list of previously guessed words.
     guesses: Vec<Word>,
 
@@ -118,6 +124,9 @@ pub enum ModelMsg {
     /// This should only be used internally.
     ForceUpdate,
 
+    /// Update [`self.map`](Model::map) and re-render.
+    UpdateMap,
+
     /// Show the correct guess.
     ///
     /// This is a message to allow a delay between the user failing, and us showing the correct word.
@@ -153,6 +162,7 @@ impl Component for Model {
     fn create(_ctx: &Context<Self>) -> Self {
         Self {
             game: Game::new(),
+            map: Game::new_keyboard_map(),
             guesses: Vec::new(),
             current_guess: None,
             guessed_correct: false,
@@ -167,6 +177,10 @@ impl Component for Model {
         match msg {
             Self::Message::DoNothing => false,
             Self::Message::ForceUpdate => true,
+            Self::Message::UpdateMap => {
+                self.map = self.game.keyboard.clone();
+                true
+            }
             Self::Message::ShowCorrectGuess => {
                 self.show_correct_guess = true;
                 true
@@ -176,12 +190,19 @@ impl Component for Model {
                     Ok(letters) => {
                         self.guesses.push(letters);
                         self.current_guess = None;
+
                         if letters.iter().map(|l| l.position).collect::<Vec<_>>() == vec![Position::Correct; 5] {
                             self.guessed_correct = true;
                         } else if self.guesses.len() >= 6 {
                             let link = ctx.link().clone();
                             Timeout::new(2000, move || link.send_message(ModelMsg::ShowCorrectGuess)).forget();
                         }
+
+                        Timeout::new(1800, {
+                            let link = ctx.link().clone();
+                            move || link.send_message(ModelMsg::UpdateMap)
+                        })
+                        .forget();
                     }
                     Err(e) => match e {
                         GuessError::WrongWordLength => unreachable!("The player should only be able to submit a guess with 5 letters, not {}", guess.len()),
@@ -296,7 +317,7 @@ impl Component for Model {
                 <div class="board-container">
                     <BoardComp guesses={self.guesses.clone()} current_guess={self.current_guess.clone()} {bad_guess} />
                 </div>
-                <KeyboardComp map={self.game.keyboard.clone()} />
+                <KeyboardComp map={self.map.clone()} />
                 if self.show_correct_guess {
                     <ShowCorrectGuess word={self.game.word.clone()} />
                 }

@@ -58,7 +58,8 @@ impl Game {
     /// Create a game by choosing a random target word from [`GOOD_WORDS`](valid_words::GOOD_WORDS).
     ///
     /// This constructor also ensures that the [`keyboard`](Game::keyboard) contains all uppercase
-    /// Latin letters, and initially maps them all to [`None`].
+    /// Latin letters, and initially maps them all to [`None`]. See
+    /// [`new_keyboard_map`](Game::new_keyboard_map).
     pub fn new() -> Self {
         Self {
             word: {
@@ -67,14 +68,17 @@ impl Game {
                     .expect("valid_words::GOOD_WORDS should never be empty");
                 word.to_string().to_ascii_uppercase()
             },
-            keyboard: {
-                let mut map = HashMap::new();
-                for c in valid_words::ALPHABET {
-                    map.insert(c, None);
-                }
-                map
-            },
+            keyboard: Self::new_keyboard_map(),
         }
+    }
+
+    /// Create an empty keyboard map.
+    pub fn new_keyboard_map() -> HashMap<char, Option<Position>> {
+        let mut map = HashMap::new();
+        for c in valid_words::ALPHABET {
+            map.insert(c, None);
+        }
+        map
     }
 
     /// Check if the guess is valid, returning `Ok(())` if it is.
@@ -300,14 +304,6 @@ mod ordered_position {
 mod tests {
     use super::*;
 
-    fn get_keyboard() -> HashMap<char, Option<Position>> {
-        let mut map = HashMap::new();
-        for c in valid_words::ALPHABET {
-            map.insert(c, None);
-        }
-        map
-    }
-
     #[test]
     fn make_guess_invalid_inputs() {
         let mut game = Game::new();
@@ -338,7 +334,7 @@ mod tests {
     fn make_guess_correct_output() {
         let mut game = Game {
             word: "DYSON".to_string(),
-            keyboard: get_keyboard(),
+            keyboard: Game::new_keyboard_map(),
         };
 
         assert_eq!(
@@ -414,7 +410,7 @@ mod tests {
 
         let mut game = Game {
             word: "BLEEP".to_string(),
-            keyboard: get_keyboard(),
+            keyboard: Game::new_keyboard_map(),
         };
 
         assert_eq!(
@@ -432,7 +428,7 @@ mod tests {
 
         let mut game = Game {
             word: "EERIE".to_string(),
-            keyboard: get_keyboard(),
+            keyboard: Game::new_keyboard_map(),
         };
 
         assert_eq!(
