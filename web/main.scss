@@ -1,0 +1,426 @@
+$header-height: 60px;
+$keyboard-height: 200px;
+
+@mixin centered-flex {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+@mixin letter-guess-style {
+	background-color: var(--color-tone-7);
+	border: 2px solid var(--color-tone-3);
+	color: var(--color-tone-1);
+}
+
+@mixin letter-flip-keyframes($color) {
+	0% {
+		transform: rotateX(0);
+		@include letter-guess-style;
+	}
+	50% {
+		transform: rotateX(-90deg);
+		@include letter-guess-style;
+	}
+	51% {
+		border: none;
+		color: var(--letter-text-color);
+	}
+	100% {
+		transform: rotateX(0);
+		background-color: var($color);
+		border: none;
+		color: var(--letter-text-color);
+	}
+}
+
+@mixin animate-letter-flip($anim) {
+	animation: forwards;
+	animation-name: $anim;
+	animation-duration: 500ms;
+	animation-timing-function: ease-in;
+}
+
+@keyframes letter-pop-in {
+	from {
+		transform: scale(0.8);
+		opacity: 0;
+	}
+	40% {
+		transform: scale(1.1);
+		opacity: 1;
+	}
+}
+
+@keyframes letter-flip-notinword {
+	@include letter-flip-keyframes(--color-notinword);
+}
+
+@keyframes letter-flip-wrongposition {
+	@include letter-flip-keyframes(--color-wrongposition);
+}
+
+@keyframes letter-flip-correct {
+	@include letter-flip-keyframes(--color-correct);
+}
+
+@keyframes row-shake-anim {
+	10%, 90% {
+		transform: translateX(-1px);
+	}
+	20%, 80% {
+		transform: translateX(2px);
+	}
+	30%, 50%, 70% {
+		transform: translateX(-4px);
+	}
+	40%, 60% {
+		transform: translateX(4px);
+	}
+}
+
+@keyframes row-correct-bounce-anim {
+	0%, 20% {
+		transform: translateY(0);
+	}
+	40% {
+		transform: translateY(-30px);
+	}
+	50% {
+		transform: translateY(5px);
+	}
+	60% {
+		transform: translateY(-15px);
+	}
+	80% {
+		transform: translateY(2px);
+	}
+	100% {
+		transform: translateY(0);
+	}
+}
+
+@keyframes rainbow-anim {
+	0%, 100% {
+		background-position: 0 0;
+	}
+	50% {
+		background-position: 100% 0;
+	}
+}
+
+:root {
+	font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+
+	--green: #6aaa64;
+	--darkendGreen: #538d4e;
+	--yellow: #c9b458;
+	--darkendYellow: #b59f3b;
+	--spellingBeeYellow: #f7da21;
+	--lightGray: #d3d6da;
+	--gray: #86888a;
+	--gray-2: #dcdcdc;
+	--gray-3: #dfdfdf;
+	--darkGray: #939598;
+	--white: #fff;
+	--black: #212121;
+	--black-2: #121212;
+	--black-3: #363636;
+	--black-4: #cfcfcf;
+	--orange: #f5793a;
+	--blue: #85c0f9;
+
+	--color-tone-1: #000000;
+	--color-tone-2: #787c7e;
+	--color-tone-3: #878a8c;
+	--color-tone-4: #d3d6da;
+	--color-tone-5: #edeff1;
+	--color-tone-6: #f6f7f8;
+	--color-tone-7: #ffffff;
+	--color-tone-8: #121212;
+	--color-tone-9: #dfdfdf;
+	--color-tone-10: #000000;
+	--color-tone-11: #787c7e;
+	--color-tone-12: #363636;
+	--error-background: #e3e3e1;
+	--icon-disabled: #a6a6a6;
+
+	--color-wrongposition: var(--yellow);
+	--color-correct: var(--green);
+	--color-notinword: var(--color-tone-2);
+	--letter-text-color: var(--color-tone-7);
+	--key-text-color: var(--color-tone-1);
+	--key-evaluated-text-color: var(--color-tone-7);
+	--key-bg: var(--color-tone-4);
+	--key-bg-wrongposition: var(--color-wrongposition);
+	--key-bg-correct: var(--color-correct);
+	--key-bg-notinword: var(--color-notinword);
+	--modal-content-bg: var(--color-tone-7);
+}
+
+.dark {
+	--color-tone-1: #ffffff;
+	--color-tone-2: #818384;
+	--color-tone-3: #565758;
+	--color-tone-4: #3a3a3c;
+	--color-tone-5: #272729;
+	--color-tone-6: #1a1a1b;
+	--color-tone-7: #121213;
+	--color-tone-8: #ffffff;
+	--color-tone-9: #424242;
+	--color-tone-10: #dfdfdf;
+	--color-tone-11: #dfdfdf;
+	--color-tone-12: #dfdfdf;
+	--error-background: var(--color-tone-7);
+	--icon-disabled: #59595a;
+
+	--color-wrongposition: var(--darkendYellow);
+	--color-correct: var(--darkendGreen);
+	--color-notinword: var(--color-tone-4);
+	--letter-text-color: var(--color-tone-1);
+	--key-text-color: var(--color-tone-1);
+	--key-evaluated-text-color: var(--color-tone-1);
+	--key-bg: var(--color-tone-2);
+	--key-bg-wrongposition: var(--color-wrongposition);
+	--key-bg-correct: var(--color-correct);
+	--key-bg-notinword: var(--color-notinword);
+	--modal-content-bg: var(--color-tone-7);
+}
+
+:root, .dark {
+	--color-background: var(--color-tone-7);
+}
+
+html, body {
+	margin: 0;
+	height: 100%;
+	background-color: var(--color-background);
+}
+
+div.game {
+	width: 100%;
+	max-width: 500px;
+	margin: 0 auto;
+	height: calc(100% - $header-height);
+	display: flex;
+	flex-direction: column;
+
+	div.board-container {
+		@include centered-flex;
+		flex-grow: 1;
+		overflow: hidden;
+		width: 100%;
+
+		div.board {
+			display: grid;
+			grid-template-rows: repeat(6, 1fr);
+			grid-gap: 5px;
+			padding: 10px;
+			box-sizing: border-box;
+
+			div.row {
+				display: grid;
+				grid-template-columns: repeat(5, 1fr);
+				grid-gap: 5px;
+
+				div.letter {
+					width: 100%;
+					display: inline-flex;
+					justify-content: center;
+					align-items: center;
+
+					font-weight: bold;
+					vertical-align: middle;
+					box-sizing: border-box;
+
+					text-transform: uppercase;
+					user-select: none;
+
+					color: var(--letter-text-color);
+					font-size: 2rem;
+					line-height: 2rem;
+
+					&.empty {
+						border: 2px solid var(--color-tone-4);
+					}
+
+					&.guess {
+						@include letter-guess-style;
+
+						animation-name: letter-pop-in;
+						animation-duration: 100ms;
+					}
+
+					&.notinword {
+						@include letter-guess-style;
+						@include animate-letter-flip(letter-flip-notinword);
+					}
+
+					&.wrongposition {
+						@include letter-guess-style;
+						@include animate-letter-flip(letter-flip-wrongposition);
+					}
+
+					&.correct {
+						@include letter-guess-style;
+						@include animate-letter-flip(letter-flip-correct);
+					}
+				}
+
+				&.row-shake {
+					animation-name: row-shake-anim;
+					animation-duration: 600ms;
+				}
+
+				&.row-correct-bounce {
+					div.letter {
+						// We know that this letter will be correct if the row is bouncing
+						@include letter-guess-style;
+						background-color: var(--color-correct);
+						border: none;
+						color: var(--letter-text-color);
+
+						animation-name: row-correct-bounce-anim;
+						animation-duration: 1300ms;
+					}
+				}
+			}
+		}
+	}
+
+	div.keyboard {
+		height: $keyboard-height;
+		margin: 8px;
+		margin-top: 0;
+		user-select: none;
+
+		div.keyboard-row {
+			display: flex;
+			width: 100%;
+			margin: 0 auto 8px;
+
+			div.keyboard-spacer {
+				flex: 0.5;
+			}
+
+			button.keyboard-key {
+				@include centered-flex;
+				font-family: inherit;
+				font-weight: bold;
+				border: 0;
+				padding: 0;
+				margin: 0 6px 0 0;
+				height: 58px;
+				border-radius: 4px;
+				user-select: none;
+				background-color: var(--key-bg);
+				color: var(--key-text-color);
+				flex: 1;
+				text-transform: uppercase;
+
+				&.special-key {
+					flex: 1.5;
+					font-size: 12px;
+				}
+
+				&.notinword, &.wrongposition, &.correct {
+					color: var(--key-evaluated-text-color);
+				}
+
+				&.notinword {
+					background-color: var(--key-bg-notinword);
+				}
+
+				&.wrongposition {
+					background-color: var(--key-bg-wrongposition);
+				}
+
+				&.correct {
+					background-color: var(--key-bg-correct);
+				}
+			}
+		}
+	}
+
+	div.correct-guess-popup-container {
+		z-index: 1000;
+
+		position: absolute;
+		top: 35%;
+		left: 50%;
+		transform: translate(-50%, 0);
+		pointer-events: none;
+		width: fit-content;
+
+		border: none;
+		border-radius: 6px;
+		opacity: 0.9;
+
+		background-color: var(--color-tone-8);
+
+		div.correct-guess-popup {
+			position: relative;
+			margin: 14px;
+			padding: 16px;
+
+			font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+			font-weight: 700;
+			font-size: 50px;
+			line-height: 55px;
+
+			background: linear-gradient(to right, #6666ff, #0099ff , #00ff00, #ff3399, #6666ff);
+			background-clip: text;
+			background-size: 400% 100%;
+			color: transparent;
+
+			animation: rainbow-anim 4s ease-in-out infinite;
+		}
+	}
+}
+
+header {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-start;
+	flex-wrap: nowrap;
+	padding: 0 20px;
+	height: $header-height;
+	color: var(--color-tone-1);
+	border-bottom: 1px solid var(--color-tone-4);
+
+	div.wordle-title {
+		display: flex;
+		flex-direction: row;
+		align-items: baseline;
+		justify-content: flex-start;
+		flex-wrap: nowrap;
+
+		text-align: left;
+		flex-grow: 2;
+		font-weight: bold;
+
+		div.main-title {
+			font-size: 2.8rem;
+			font-family: Georgia, serif;
+		}
+
+		div.subtitle {
+			margin-left: 15px;
+			font-size: 0.8rem;
+			font-style: italic;
+		}
+	}
+
+	button.dark-mode-button {
+		@include centered-flex;
+		border-radius: 50%;
+		height: 100%;
+		width: 100%;
+		border: none;
+		color: inherit;
+		cursor: pointer;
+		padding: 0;
+		background: var(--color-background);
+	}
+}

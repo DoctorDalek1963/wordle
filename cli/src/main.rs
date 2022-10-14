@@ -1,17 +1,15 @@
-use std::collections::HashMap;
+//! This crate is a simple CLI interface to [`wordle`](::wordle) using
+//! [`inquire`](https://docs.rs/inquire/0.3.0/inquire/) and
+//! [`termion`](https://docs.rs/termion/1.5.6/termion/).
 
 use inquire::{
     ui::{RenderConfig, Styled},
     validator::Validation,
     Text,
 };
+use std::collections::HashMap;
 use termion::style;
-use wordle::{
-    letters::{Letter, Position},
-    Game,
-};
-
-const TOTAL_GUESSES: u8 = 6;
+use wordle::prelude::*;
 
 /// Return a string with the given letter and the appropriate colour for its position type.
 ///
@@ -21,7 +19,7 @@ const TOTAL_GUESSES: u8 = 6;
 /// function only handles individual letters. Additionally, this function DOES NOT RESET the
 /// terminal colours at the end of the letter. Each colour overrides the last, and the colours
 /// only need to be reset at the end of the word.
-fn pretty_print_letter_with_position(letter: &char, position: &Option<Position>) -> String {
+fn pretty_print_letter_with_position(letter: char, position: Option<Position>) -> String {
     use termion::color;
 
     let mut string: String = match position {
@@ -39,23 +37,23 @@ fn pretty_print_letter_with_position(letter: &char, position: &Option<Position>)
         },
     };
 
-    string.push(*letter);
+    string.push(letter);
     string
 }
 
 /// Return a string with the given letter and the appropriate colour for its position type.
 ///
 /// See [`pretty_print_letter_with_position`].
-fn pretty_print_letter_struct(letter: &Letter) -> String {
-    pretty_print_letter_with_position(&letter.letter, &Some(letter.position))
+fn pretty_print_letter_struct(letter: Letter) -> String {
+    pretty_print_letter_with_position(letter.letter, Some(letter.position))
 }
 
 /// Print the player's guess word highlighted according to classic Wordle colours, indented by 7 spaces.
 ///
 /// The identation is to align with the printed keyboard. See [`print_keyboard`].
-fn print_guess(letters: &[Letter; 5]) {
+fn print_guess(letters: &Word) {
     print!("       {}", style::Bold);
-    for letter in letters.map(|l| pretty_print_letter_struct(&l)) {
+    for letter in letters.map(pretty_print_letter_struct) {
         print!("{}", letter);
     }
     println!("{}", style::Reset);
@@ -73,11 +71,11 @@ fn print_keyboard(keyboard: &HashMap<char, Option<Position>>) {
 
     macro_rules! print_row {
         ( $x:ident ) => {
-            for letter in &$x {
+            for letter in $x {
                 let position = keyboard
-                    .get(letter)
+                    .get(&letter)
                     .expect("Game::keyboard should contain all Latin letters");
-                print!("{} ", pretty_print_letter_with_position(letter, position));
+                print!("{} ", pretty_print_letter_with_position(letter, *position));
             }
         };
     }
@@ -97,20 +95,15 @@ fn print_keyboard(keyboard: &HashMap<char, Option<Position>>) {
     println!("{}", style::Reset);
 }
 
-/// Clear the terminal.
+/// Create a render config for `inquire`.
 ///
-/// This CLI binary is only designed for Linux terminals, so we use ANSI codes.
-fn clear_terminal() {
-    print!("{}[2J", 27 as char);
-}
-
-fn create_render_config(guesses: &u8) -> RenderConfig {
+/// `inquire`'s render config needs a `&'static str` as the prompt string, which is why we need a
+/// separate function to generate it.
+fn create_render_config(guesses: u8) -> RenderConfig {
     use inquire::ui::Color;
 
     // This section is needed because RenderConfig.prompt_prefix needs to be
     // Styled<&'static str>, so the string needs to be a literal
-
-    // NOTE: If we ever change the TOTAL_GUESSES, then this section also needs to change
 
     let prompt_prefix = Styled::new(match guesses {
         6 => "(1/6) >",
@@ -141,6 +134,10 @@ fn create_render_config(guesses: &u8) -> RenderConfig {
     config
 }
 
+/// Run the main game loop.
+///
+/// This loop consists of prompting the user for a guess, making that guess against the [`Game`],
+/// and responding accordingly.
 fn main() {
     let mut game = Game::new();
 
@@ -148,12 +145,12 @@ fn main() {
         let valid = Game::is_valid_guess(input);
         match valid {
             Ok(()) => Ok(Validation::Valid),
-            Err((error, _)) => Ok(Validation::Invalid(error.into())),
+            Err(error) => Ok(Validation::Invalid(error.into())),
         }
     };
 
-    let mut remaining_guesses: u8 = TOTAL_GUESSES;
-    let mut past_guesses: Vec<[Letter; 5]> = Vec::new();
+    let mut remaining_guesses: u8 = 6;
+    let mut past_guesses: Vec<Word> = Vec::new();
 
     println!("Welcome to Wordle!\n");
 
@@ -164,44 +161,41 @@ fn main() {
             break;
         };
 
-        match Text::new("")
-            .with_render_config(create_render_config(&remaining_guesses))
+        if let Ok(guess) = Text::new("")
+            .with_render_config(create_render_config(remaining_guesses))
             .with_validator(validator)
             .with_formatter(&str::to_ascii_uppercase)
             .prompt()
         {
-            Ok(guess) => {
-                let letters = game.make_guess(&guess).unwrap_or_else(|_| {
-                    panic!("User should not have been able to enter any invalid guess: {guess:?}")
-                });
+            let letters = game.make_guess(&guess).unwrap_or_else(|_| {
+                panic!("User should not have been able to enter any invalid guess: {guess:?}")
+            });
 
-                past_guesses.push(letters);
+            past_guesses.push(letters);
 
-                clear_terminal();
+            print!("{}", termion::clear::All);
 
-                for guess in &past_guesses {
-                    print_guess(guess);
-                }
-                println!();
-
-                print_keyboard(&game.keyboard);
-
-                if letters
-                    .iter()
-                    .filter(|l| l.position == Position::Correct)
-                    .count()
-                    == 5
-                {
-                    println!("\nCongratulations! The word was {}!", game.word);
-                    break;
-                }
-
-                remaining_guesses -= 1;
+            for guess in &past_guesses {
+                print_guess(guess);
             }
-            Err(_) => {
-                println!("\nThanks for playing Wordle! The word was {}!", game.word);
+            println!();
+
+            print_keyboard(&game.keyboard);
+
+            if letters
+                .iter()
+                .filter(|l| l.position == Position::Correct)
+                .count()
+                == 5
+            {
+                println!("\nCongratulations! The word was {}!", game.word);
                 break;
             }
-        };
+
+            remaining_guesses -= 1;
+        } else {
+            println!("\nThanks for playing Wordle! The word was {}!", game.word);
+            break;
+        }
     }
 }
