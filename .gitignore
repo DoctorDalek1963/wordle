@@ -1,2 +1,4 @@
-/target
-/Cargo.lock
+target/
+result
+.direnv/
+.pre-commit-config.yaml
