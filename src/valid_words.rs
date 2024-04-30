@@ -1546,5 +1546,5 @@ pub const GOOD_WORDS: [&str; 2315] = [
     "WOMEN", "WOODY", "WOOER", "WOOLY", "WOOZY", "WORDY", "WORLD", "WORRY", "WORSE", "WORST",
     "WORTH", "WOULD", "WOUND", "WOVEN", "WRACK", "WRATH", "WREAK", "WRECK", "WREST", "WRING",
     "WRIST", "WRITE", "WRONG", "WROTE", "WRUNG", "WRYLY", "YACHT", "YEARN", "YEAST", "YIELD",
-    "YOUNG", "YOUTH", "ZEBRA", "ZESTY", "ZONAL"
+    "YOUNG", "YOUTH", "ZEBRA", "ZESTY", "ZONAL",
 ];
