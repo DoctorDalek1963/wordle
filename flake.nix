@@ -76,28 +76,28 @@
           };
         };
 
-        packages = let
-          docPkg = naersk.buildPackage {
-            src = ./.;
-            mode = "check";
-            doDoc = true;
-            doDocFail = true;
-            cargoDocOptions = l:
-              l
-              ++ [
-                "--no-deps"
-                "--document-private-items"
-                "--workspace"
-              ];
-          };
-        in {
+        packages = {
           cli = naersk.buildPackage {
             src = ./.;
             cargoBuildOptions = l: l ++ ["--package wordle-cli"];
             meta.mainProgram = "wordle-cli";
           };
 
-          inherit (docPkg) doc;
+          doc =
+            (naersk.buildPackage {
+              src = ./.;
+              mode = "check";
+              doDoc = true;
+              doDocFail = true;
+              cargoDocOptions = l:
+                l
+                ++ [
+                  "--no-deps"
+                  "--document-private-items"
+                  "--workspace"
+                ];
+            })
+            .doc;
         };
       };
     };
