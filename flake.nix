@@ -39,24 +39,19 @@
 
         rust-toolchain = pkgs.rust-bin.stable.latest.default;
 
-        buildInputs = with pkgs; [];
-
         naersk = pkgs.callPackage inputs.naersk {
           cargo = rust-toolchain;
           rustc = rust-toolchain;
         };
       in rec {
         devShells.default = pkgs.mkShell {
-          nativeBuildInputs =
-            [
-              (rust-toolchain.override {
-                extensions = ["rust-analyzer" "rust-src" "rust-std"];
-              })
-            ]
-            ++ buildInputs;
+          nativeBuildInputs = [
+            (rust-toolchain.override {
+              extensions = ["rust-analyzer" "rust-src" "rust-std"];
+            })
+          ];
           shellHook = ''
             ${config.pre-commit.installationScript}
-            export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${pkgs.lib.makeLibraryPath buildInputs}"
           '';
         };
 
@@ -98,7 +93,6 @@
         in {
           cli = naersk.buildPackage {
             src = ./.;
-            inherit buildInputs;
             cargoBuildOptions = l: l ++ ["--package wordle-cli"];
             meta.mainProgram = "wordle-cli";
           };
