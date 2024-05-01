@@ -54,6 +54,12 @@ pub struct Game {
     pub keyboard: HashMap<char, Option<Position>>,
 }
 
+impl Default for Game {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Game {
     /// Create a game by choosing a random target word from [`GOOD_WORDS`](valid_words::GOOD_WORDS).
     ///
@@ -106,8 +112,8 @@ impl Game {
 
     /// Guess the given word against the target word.
     ///
-    /// This method returns an array of five [`Letter`](letters::Letter)s. Each Letter has a [`Position`](letters::Position).
-    /// As per classic Wordle rules, the positions are calculated as follows:
+    /// This method returns an array of five [`Letter`]s. Each Letter has a [`Position`]. As per
+    /// classic Wordle rules, the positions are calculated as follows:
     ///
     /// If a letter is in the word and in the correct position, then it is [`Correct`](letters::Position::Correct).
     /// If a letter is not in the word at all, then it is [`NotInWord`](letters::Position::NotInWord).
@@ -264,10 +270,16 @@ mod ordered_position {
 
     impl PartialOrd<Self> for OrderedPosition {
         fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+            Some(self.cmp(other))
+        }
+    }
+
+    impl Ord for OrderedPosition {
+        fn cmp(&self, other: &Self) -> Ordering {
             let this = self.0;
             let other = other.0;
 
-            Some(match this {
+            match this {
                 None => match other {
                     None => Ordering::Equal,
                     _ => Ordering::Less,
@@ -288,14 +300,7 @@ mod ordered_position {
                         _ => Ordering::Greater,
                     },
                 },
-            })
-        }
-    }
-
-    impl Ord for OrderedPosition {
-        fn cmp(&self, other: &Self) -> Ordering {
-            self.partial_cmp(other)
-                .expect("Comparing two `OrderedPosition` structs should never return `None`")
+            }
         }
     }
 }

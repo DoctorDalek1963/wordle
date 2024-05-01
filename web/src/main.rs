@@ -1,4 +1,4 @@
-//! This crate is a simple web interface to [`wordle`](::wordle) using
+//! This crate is a simple web interface to [`wordle`] using
 //! [`yew`](https://docs.rs/yew/0.19.3/yew/).
 
 mod board;

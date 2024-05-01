@@ -159,7 +159,7 @@ impl Component for KeyboardComp {
         Self {}
     }
 
-    /// Pass the given message up to the parent component ([`Model`](super::Model)).
+    /// Pass the given message up to the parent component ([`Model`]).
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         let parent: Scope<Model> = get_parent(ctx);
         parent.callback(move |_| msg.clone()).emit(());

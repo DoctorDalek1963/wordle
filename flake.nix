@@ -75,6 +75,7 @@
               (rustToolchain.override {
                 extensions = ["rust-analyzer" "rust-src" "rust-std"];
               })
+              pkgs.cargo-nextest
             ]
             ++ trunkPreBuildTools;
           shellHook = ''
@@ -103,6 +104,27 @@
           };
         };
 
+        checks = {
+          inherit (packages) cli doc web;
+
+          clippy = craneLib.cargoClippy (commonArgs
+            // {
+              inherit cargoArtifacts;
+              cargoClippyExtraArgs = "--all-targets -- --deny warnings";
+            });
+
+          fmt = craneLib.cargoFmt {
+            inherit src;
+          };
+
+          nextest = craneLib.cargoNextest (commonArgs
+            // {
+              inherit cargoArtifacts;
+              partitions = 1;
+              partitionType = "count";
+            });
+        };
+
         packages = {
           cli = craneLib.buildPackage (individualCrateArgs
             // {
@@ -115,6 +137,7 @@
             // {
               inherit cargoArtifacts;
               cargoDocExtraArgs = "--no-deps --document-private-items --workspace";
+              RUSTDOCFLAGS = "--deny warnings";
             });
 
           web = let
