@@ -40,7 +40,13 @@
         rustToolchain = pkgs.rust-bin.stable.latest.default;
 
         craneLib = (inputs.crane.mkLib pkgs).overrideToolchain rustToolchain;
-        src = craneLib.cleanCargoSource (craneLib.path ./.);
+        src = pkgs.lib.cleanSourceWith {
+          src = ./.;
+          filter = path: type:
+            (pkgs.lib.hasSuffix "\.html" path)
+            || (pkgs.lib.hasSuffix "\.scss" path)
+            || (craneLib.filterCargoSources path type);
+        };
 
         commonArgs = {
           inherit src;
@@ -55,13 +61,22 @@
             inherit cargoArtifacts;
             inherit (craneLib.crateNameFromCargoToml {inherit src;}) version;
           };
+
+        trunkPreBuildTools = with pkgs.nodePackages; [
+          autoprefixer
+          postcss
+          postcss-cli
+          sass
+        ];
       in rec {
         devShells.default = pkgs.mkShell {
-          nativeBuildInputs = [
-            (rustToolchain.override {
-              extensions = ["rust-analyzer" "rust-src" "rust-std"];
-            })
-          ];
+          nativeBuildInputs =
+            [
+              (rustToolchain.override {
+                extensions = ["rust-analyzer" "rust-src" "rust-std"];
+              })
+            ]
+            ++ trunkPreBuildTools;
           shellHook = ''
             ${config.pre-commit.installationScript}
           '';
@@ -92,7 +107,7 @@
           cli = craneLib.buildPackage (individualCrateArgs
             // {
               pname = "wordle-cli";
-              cargoExtraArgs = "-p wordle-cli";
+              cargoExtraArgs = "--package=wordle-cli";
               inherit src;
             });
 
@@ -101,6 +116,33 @@
               inherit cargoArtifacts;
               cargoDocExtraArgs = "--no-deps --document-private-items --workspace";
             });
+
+          web = let
+            rustToolchainWasm = rustToolchain.override {
+              targets = ["wasm32-unknown-unknown"];
+            };
+            craneLibTrunk =
+              ((inputs.crane.mkLib pkgs).overrideToolchain rustToolchainWasm)
+              .overrideScope (_: _: {inherit (pkgs) wasm-bindgen-cli;});
+          in
+            craneLibTrunk.buildTrunkPackage (commonArgs
+              // {
+                pname = "wordle-web";
+                inherit cargoArtifacts;
+
+                trunkIndexPath = "web/index.html";
+                cargoExtraArgs = "--package=wordle-web";
+                CARGO_BUILD_TARGET = "wasm32-unknown-unknown";
+                inherit (pkgs) wasm-bindgen-cli;
+
+                nativeBuildInputs = trunkPreBuildTools;
+                preBuild = ''
+                  sass web/main.scss web/sass.css
+                  mv web/sass.css web/_main.css
+                  # TODO: Use postcss properly. Why doesn't it recognise autoprefixer?
+                  # postcss --use autoprefixer -o web/_main.css web/sass.css
+                '';
+              });
         };
       };
     };

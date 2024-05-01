@@ -12,6 +12,6 @@ gloo-events = "0.1.2"
 gloo-timers = "0.2.4"
 gloo-utils = "0.1.5"
 js-sys = "0.3.60"
-wasm-bindgen = "0.2.83"
+wasm-bindgen = "=0.2.89"
 web-sys = { version = "0.3.60", features = ["DomTokenList"] }
 yew = "0.19"
