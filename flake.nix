@@ -14,8 +14,8 @@
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    naersk = {
-      url = "github:nix-community/naersk";
+    crane = {
+      url = "github:ipetkov/crane";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -37,16 +37,28 @@
           overlays = [(import inputs.rust-overlay)];
         };
 
-        rust-toolchain = pkgs.rust-bin.stable.latest.default;
+        rustToolchain = pkgs.rust-bin.stable.latest.default;
 
-        naersk = pkgs.callPackage inputs.naersk {
-          cargo = rust-toolchain;
-          rustc = rust-toolchain;
+        craneLib = (inputs.crane.mkLib pkgs).overrideToolchain rustToolchain;
+        src = craneLib.cleanCargoSource (craneLib.path ./.);
+
+        commonArgs = {
+          inherit src;
+          strictDeps = true;
         };
+
+        cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+
+        individualCrateArgs =
+          commonArgs
+          // {
+            inherit cargoArtifacts;
+            inherit (craneLib.crateNameFromCargoToml {inherit src;}) version;
+          };
       in rec {
         devShells.default = pkgs.mkShell {
           nativeBuildInputs = [
-            (rust-toolchain.override {
+            (rustToolchain.override {
               extensions = ["rust-analyzer" "rust-src" "rust-std"];
             })
           ];
@@ -70,34 +82,25 @@
           rustfmt = {
             enable = true;
             packageOverrides = {
-              cargo = rust-toolchain;
-              rustfmt = rust-toolchain;
+              cargo = rustToolchain;
+              rustfmt = rustToolchain;
             };
           };
         };
 
         packages = {
-          cli = naersk.buildPackage {
-            src = ./.;
-            cargoBuildOptions = l: l ++ ["--package wordle-cli"];
-            meta.mainProgram = "wordle-cli";
-          };
+          cli = craneLib.buildPackage (individualCrateArgs
+            // {
+              pname = "wordle-cli";
+              cargoExtraArgs = "-p wordle-cli";
+              inherit src;
+            });
 
-          doc =
-            (naersk.buildPackage {
-              src = ./.;
-              mode = "check";
-              doDoc = true;
-              doDocFail = true;
-              cargoDocOptions = l:
-                l
-                ++ [
-                  "--no-deps"
-                  "--document-private-items"
-                  "--workspace"
-                ];
-            })
-            .doc;
+          doc = craneLib.cargoDoc (commonArgs
+            // {
+              inherit cargoArtifacts;
+              cargoDocExtraArgs = "--no-deps --document-private-items --workspace";
+            });
         };
       };
     };
