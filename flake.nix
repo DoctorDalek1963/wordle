@@ -130,7 +130,6 @@
             // {
               pname = "wordle-cli";
               cargoExtraArgs = "--package=wordle-cli";
-              inherit src;
             });
 
           doc = craneLib.cargoDoc (commonArgs
