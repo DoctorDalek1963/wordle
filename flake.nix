@@ -34,7 +34,16 @@
       }: let
         pkgs = import inputs.nixpkgs {
           inherit system;
-          overlays = [(import inputs.rust-overlay)];
+          overlays = [
+            (import inputs.rust-overlay)
+            (_final: prev: {
+              wasm-bindgen-cli = prev.wasm-bindgen-cli.override {
+                version = "0.2.92";
+                hash = "sha256-1VwY8vQy7soKEgbki4LD+v259751kKxSxmo/gqE6yV0=";
+                cargoHash = "sha256-aACJ+lYNEU8FFBs158G1/JG8sc6Rq080PeKCMnwdpH0=";
+              };
+            })
+          ];
         };
 
         rustToolchain = pkgs.rust-bin.stable.latest.default;
