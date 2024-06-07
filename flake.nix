@@ -54,6 +54,7 @@
           filter = path: type:
             (pkgs.lib.hasSuffix "\.html" path)
             || (pkgs.lib.hasSuffix "\.scss" path)
+            || (pkgs.lib.hasSuffix "\.ico" path)
             || (craneLib.filterCargoSources path type);
         };
 
