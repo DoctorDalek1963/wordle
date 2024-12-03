@@ -10,8 +10,10 @@ use gloo_events::EventListener;
 use gloo_timers::callback::Timeout;
 use gloo_utils::{body, document, window};
 use std::{cell::RefCell, collections::HashMap};
-use wasm_bindgen::{JsCast, UnwrapThrowExt};
-use web_sys::{KeyboardEvent, MouseEvent};
+use web_sys::{
+    wasm_bindgen::{JsCast, UnwrapThrowExt},
+    KeyboardEvent, MouseEvent,
+};
 use wordle::{prelude::*, valid_words::ALPHABET};
 use yew::{html, Component, Context, Html};
 

@@ -2,7 +2,7 @@
   description = "A simple Wordle clone with a CLI version and a web app";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
     flake-parts.url = "github:hercules-ci/flake-parts";
 
     pre-commit-hooks = {
@@ -14,10 +14,7 @@
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    crane = {
-      url = "github:ipetkov/crane";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    crane.url = "github:ipetkov/crane";
   };
 
   outputs = inputs @ {flake-parts, ...}:
@@ -38,9 +35,9 @@
             (import inputs.rust-overlay)
             (_final: prev: {
               wasm-bindgen-cli = prev.wasm-bindgen-cli.override {
-                version = "0.2.92";
-                hash = "sha256-1VwY8vQy7soKEgbki4LD+v259751kKxSxmo/gqE6yV0=";
-                cargoHash = "sha256-aACJ+lYNEU8FFBs158G1/JG8sc6Rq080PeKCMnwdpH0=";
+                version = "0.2.97";
+                hash = "sha256-DDUdJtjCrGxZV84QcytdxrmS5qvXD8Gcdq4OApj5ktI=";
+                cargoHash = "sha256-Zfc2aqG7Qi44dY2Jz1MCdpcL3lk8C/3dt7QiE0QlNhc=";
               };
             })
           ];
@@ -87,6 +84,8 @@
                 targets = ["wasm32-unknown-unknown"];
               })
               pkgs.cargo-nextest
+              pkgs.trunk
+              pkgs.wasm-bindgen-cli
             ]
             ++ trunkPreBuildTools;
           shellHook = ''
@@ -174,6 +173,9 @@
                   mv web/sass.css web/_main.css
                   # TODO: Use postcss properly. Why doesn't it recognise autoprefixer?
                   # postcss --use autoprefixer -o web/_main.css web/sass.css
+                '';
+                postBuild = ''
+                  mv dist web/
                 '';
               });
         };

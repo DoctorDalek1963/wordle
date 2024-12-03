@@ -3,3 +3,4 @@ result
 result-doc
 .direnv/
 .pre-commit-config.yaml
+/dist/
