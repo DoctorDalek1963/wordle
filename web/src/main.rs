@@ -11,11 +11,11 @@ use gloo_timers::callback::Timeout;
 use gloo_utils::{body, document, window};
 use std::{cell::RefCell, collections::HashMap};
 use web_sys::{
-    wasm_bindgen::{JsCast, UnwrapThrowExt},
     KeyboardEvent, MouseEvent,
+    wasm_bindgen::{JsCast, UnwrapThrowExt},
 };
 use wordle::{prelude::*, valid_words::ALPHABET};
-use yew::{html, Component, Context, Html};
+use yew::{Component, Context, Html, html};
 
 /// Get the value of the `wordleDarkMode` key in `localStorage`.
 fn storage_get_dark_mode() -> Option<bool> {
@@ -193,11 +193,16 @@ impl Component for Model {
                         self.guesses.push(letters);
                         self.current_guess = None;
 
-                        if letters.iter().map(|l| l.position).collect::<Vec<_>>() == vec![Position::Correct; 5] {
+                        if letters.iter().map(|l| l.position).collect::<Vec<_>>()
+                            == vec![Position::Correct; 5]
+                        {
                             self.guessed_correct = true;
                         } else if self.guesses.len() >= 6 {
                             let link = ctx.link().clone();
-                            Timeout::new(2000, move || link.send_message(ModelMsg::ShowCorrectGuess)).forget();
+                            Timeout::new(2000, move || {
+                                link.send_message(ModelMsg::ShowCorrectGuess)
+                            })
+                            .forget();
                         }
 
                         Timeout::new(1800, {
@@ -207,12 +212,17 @@ impl Component for Model {
                         .forget();
                     }
                     Err(e) => match e {
-                        GuessError::WrongWordLength => unreachable!("The player should only be able to submit a guess with 5 letters, not {}", guess.len()),
-                        GuessError::IncludesNonAscii => unreachable!("The guess should never be able to contain non-ASCII characters (guess = {guess:?})"),
+                        GuessError::WrongWordLength => unreachable!(
+                            "The player should only be able to submit a guess with 5 letters, not {}",
+                            guess.len()
+                        ),
+                        GuessError::IncludesNonAscii => unreachable!(
+                            "The guess should never be able to contain non-ASCII characters (guess = {guess:?})"
+                        ),
                         GuessError::InvalidWord => {
                             self.bad_guess.replace(true);
                         }
-                    }
+                    },
                 };
                 true
             }

@@ -4,7 +4,7 @@ use super::{Model, ModelMsg};
 use std::collections::HashMap;
 use web_sys::MouseEvent;
 use wordle::letters::Position;
-use yew::{classes, html, html::Scope, Component, Context, Html, Properties};
+use yew::{Component, Context, Html, Properties, classes, html, html::Scope};
 
 /// Get the parent scope from the given component context.
 ///

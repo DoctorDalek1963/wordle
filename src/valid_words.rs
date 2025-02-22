@@ -1,7 +1,7 @@
 //! This module simply contains the valid, guessable words, and the words that may be used as target words.
 
 /// This is just the alphabet, all in uppercase.
-pub const ALPHABET: [char; 26] = [
+pub static ALPHABET: [char; 26] = [
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
     'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
 ];
@@ -12,7 +12,7 @@ pub const ALPHABET: [char; 26] = [
 ///
 /// This list contains basically all 5 letter words in English, so it's mostly words that
 /// you've never heard of, like ABMHO, IMMIX, TYIYN, and WAQFS.
-pub const VALID_WORDS: [&str; 12973] = [
+pub static VALID_WORDS: [&str; 12973] = [
     "AAHED", "AALII", "AARGH", "AARTI", "ABACA", "ABACI", "ABACK", "ABACS", "ABAFT", "ABAKA",
     "ABAMP", "ABAND", "ABASE", "ABASH", "ABASK", "ABATE", "ABAYA", "ABBAS", "ABBED", "ABBES",
     "ABBEY", "ABBOT", "ABCEE", "ABEAM", "ABEAR", "ABELE", "ABERS", "ABETS", "ABHOR", "ABIDE",
@@ -1314,7 +1314,7 @@ pub const VALID_WORDS: [&str; 12973] = [
 ];
 
 /// These are all the words that the original Wordle could make the player guess as a target word.
-pub const GOOD_WORDS: [&str; 2315] = [
+pub static GOOD_WORDS: [&str; 2315] = [
     "ABACK", "ABASE", "ABATE", "ABBEY", "ABBOT", "ABHOR", "ABIDE", "ABLED", "ABODE", "ABORT",
     "ABOUT", "ABOVE", "ABUSE", "ABYSS", "ACORN", "ACRID", "ACTOR", "ACUTE", "ADAGE", "ADAPT",
     "ADEPT", "ADMIN", "ADMIT", "ADOBE", "ADOPT", "ADORE", "ADORN", "ADULT", "AFFIX", "AFIRE",

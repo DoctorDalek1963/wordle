@@ -3,9 +3,9 @@
 //! [`termion`](https://docs.rs/termion/1.5.6/termion/).
 
 use inquire::{
+    Text,
     ui::{RenderConfig, Styled},
     validator::Validation,
-    Text,
 };
 use std::collections::HashMap;
 use termion::style;

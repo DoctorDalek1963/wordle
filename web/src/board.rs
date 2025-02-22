@@ -3,7 +3,7 @@
 use gloo_utils::window;
 use js_sys::{Function, Promise};
 use wordle::prelude::*;
-use yew::{classes, function_component, html, Html, Properties};
+use yew::{Html, Properties, classes, function_component, html};
 
 /// Get the inner size of the window, returned as `Option<(width, height)>`.
 fn get_window_size() -> Option<(i32, i32)> {

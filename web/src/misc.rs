@@ -1,6 +1,6 @@
 //! This module handles components for the game board itself - the 6 rows of 5 letter words.
 
-use yew::{function_component, html, Properties};
+use yew::{Properties, function_component, html};
 
 #[derive(PartialEq, Properties)]
 pub struct ShowCorrectGuessProps {
